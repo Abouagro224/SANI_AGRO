@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Confirmer la suppression</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 450px; }
+        h2 { color: #d32f2f; margin-top: 0; }
+        p { color: #555; line-height: 1.6; font-size: 16px; }
+        .product-name { font-weight: bold; color: #333; background: #fff3f3; padding: 5px 10px; border-radius: 5px; }
+        .btn-group { margin-top: 30px; display: flex; justify-content: center; gap: 15px; }
+        .btn { padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; font-size: 14px; transition: 0.3s; }
+        .btn-confirm { background-color: #d32f2f; color: white; }
+        .btn-confirm:hover { background-color: #b71c1c; }
+        .btn-cancel { background-color: #9e9e9e; color: white; }
+        .btn-cancel:hover { background-color: #757575; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>⚠️ Attention, {{ request.user.username }}</h2>
+    <p>Voulez-vous vraiment retirer ce produit de la vente ?</p>
+    
+    <p class="product-name">{{ produit.nom }} ({{ produit.quantite_disponible }} {{ produit.get_unite_display }})</p>
+    
+    <p style="font-size: 0.9em; color: #888;">Cette action est irréversible. Les commerçants ne pourront plus réserver ce stock.</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="btn-group">
+            <button type="submit" class="btn btn-confirm">Oui, supprimer définitivement</button>
+            <a href="{% url 'dashboard_producteur' %}" class="btn btn-cancel">Non, annuler</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

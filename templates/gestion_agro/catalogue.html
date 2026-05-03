@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Marché Numérique</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0d47a1; /* Bleu pour le côté Business/Commerçant */
+            --success: #2e7d32;
+            --warning: #f57c00;
+            --bg: #f0f2f5;
+        }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
+        
+        .header-section { 
+            background: white; padding: 40px 20px; text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px;
+        }
+        .header-section h1 { color: var(--primary); margin: 0; font-size: 2.5rem; }
+
+        /* Barre de Filtre Professionnelle */
+        .search-container {
+            max-width: 1100px; margin: -30px auto 30px; background: white;
+            padding: 20px; border-radius: 15px; display: flex; gap: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); align-items: center;
+        }
+        .search-input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        .filter-select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+
+        .product-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 25px; max-width: 1200px; margin: 0 auto 50px; padding: 0 20px;
+        }
+
+        /* Design des Cartes */
+        .card { 
+            background: white; border-radius: 20px; overflow: hidden; 
+            transition: all 0.3s ease; border: 1px solid #eee; position: relative;
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+
+        .image-container { position: relative; height: 200px; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Badge Vidéo et Statut */
+        .video-badge {
+            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7);
+            color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px;
+        }
+        .status-badge {
+            position: absolute; top: 15px; right: 15px; padding: 5px 12px;
+            border-radius: 50px; font-size: 11px; font-weight: bold; color: white;
+        }
+
+        .card-content { padding: 20px; }
+        .origin { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .product-name { margin: 10px 0; font-size: 20px; font-weight: 700; color: #222; }
+        
+        .price-tag { 
+            background: #e3f2fd; color: var(--primary); padding: 10px;
+            border-radius: 10px; display: inline-block; font-weight: 800; font-size: 1.1rem;
+        }
+
+        .trust-score {
+            display: flex; align-items: center; gap: 5px; font-size: 13px;
+            margin-top: 15px; color: #555; border-top: 1px solid #f0f0f0; padding-top: 10px;
+        }
+
+        .btn-buy { 
+            display: block; background: var(--primary); color: white; text-align: center; 
+            padding: 14px; border-radius: 12px; text-decoration: none; margin-top: 15px; 
+            font-weight: bold; transition: 0.3s;
+        }
+        .btn-buy:hover { background: #0a3a85; }
+    </style>
+</head>
+<body>
+
+    <div class="header-section">
+        <h1><i class="fas fa-store"></i> SANI-AGRO Market</h1>
+        <p>Plateforme de mise en relation directe Producteurs-Commerçants au Mali</p>
+    </div>
+
+    <form method="GET" class="search-container">
+        <input type="text" name="q" placeholder="Rechercher un produit (Ex: Mangue)..." class="search-input">
+        <select name="zone" class="filter-select">
+            <option value="">Toutes les zones</option>
+            <option value="SIKASSO">Sikasso</option>
+            <option value="SEGOU">Ségou</option>
+            <option value="BAGUINEDA">Baguineda</option>
+        </select>
+        <button type="submit" class="btn-buy" style="margin-top:0; padding: 10px 25px;">Rechercher</button>
+    </form>
+
+    <div class="product-grid">
+        {% for p in produits %}
+        <div class="card">
+            <div class="image-container">
+                {% if p.video_demonstration %}
+                    <div class="video-badge"><i class="fas fa-video"></i> Preuve disponible</div>
+                {% endif %}
+                
+                {% if p.statut_recolte == 'SUR_PIED' %}
+                    <span class="status-badge" style="background: var(--warning);">🌳 SUR PIED</span>
+                {% else %}
+                    <span class="status-badge" style="background: var(--success);">✅ RÉCOLTÉ</span>
+                {% endif %}
+
+                {% if p.image %}
+                    <img src="{{ p.image.url }}" class="card-img" alt="{{ p.nom }}">
+                {% else %}
+                    <div style="height:100%; background:#ddd; display:flex; align-items:center; justify-content:center;">Image non disponible</div>
+                {% endif %}
+            </div>
+
+            <div class="card-content">
+                <span class="origin"><i class="fas fa-map-marker-alt"></i> {{ p.zone_production }} | {{ p.zone_origine }}</span>
+                <h2 class="product-name">{{ p.nom }}</h2>
+                
+                <div class="price-tag">
+                    {{ p.prix_unitaire }} <small>FCFA / {{ p.get_unite_display }}</small>
+                </div>
+
+                <p style="margin-top: 15px; font-size: 14px;">
+                    Stock disponible : <strong>{{ p.quantite_disponible }} {{ p.unite }}</strong>
+                </p>
+
+                <div class="trust-score">
+                    <i class="fas fa-user-check text-success"></i> 
+                    Producteur : <strong>{{ p.producteur.nom_complet }}</strong> 
+                    <span style="color: #4caf50; margin-left: auto;">{{ p.producteur.score_confiance }}% confiance</span>
+                </div>
+                
+                <a href="{% url 'reserver_produit' p.id %}" class="btn-buy">🛒 RÉSERVER CETTE RÉCOLTE</a>
+            </div>
+        </div>
+        {% empty %}
+            <div style="text-align: center; grid-column: 1/-1; padding: 50px;">
+                <i class="fas fa-search" style="font-size: 40px; color: #ccc;"></i>
+                <p style="margin-top: 10px; color: #888;">Aucun produit ne correspond à votre recherche.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

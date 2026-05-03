@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de Paiement - SANI-AGRO</title>
+    <style>
+        body { font-family: 'Helvetica', Arial, sans-serif; color: #333; line-height: 1.6; padding: 40px; }
+        .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); }
+        
+        /* En-tête mis à jour avec Logo */
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 3px solid #2e7d32; 
+            padding-bottom: 20px; 
+            margin-bottom: 20px; 
+        }
+        .brand-container { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 80px; width: auto; object-fit: contain; }
+        .brand-text h1 { color: #1a237e; margin: 0; font-size: 26px; font-family: 'Arial Black', sans-serif; }
+        .brand-text p { color: #2e7d32; margin: 0; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        
+        .info { font-size: 0.9em; text-align: right; }
+        .details-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .details-table th { background: #f8f9fa; text-align: left; padding: 12px; border: 1px solid #ddd; }
+        .details-table td { padding: 12px; border: 1px solid #ddd; }
+        .total-section { float: right; width: 300px; margin-top: 20px; }
+        .total-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .final-amount { font-size: 1.2em; font-weight: bold; color: #1a237e; }
+        .footer { margin-top: 50px; text-align: center; font-size: 0.8em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 20px; }
+        .stamp { border: 3px solid #d32f2f; color: #d32f2f; display: inline-block; padding: 10px; text-transform: uppercase; font-weight: bold; transform: rotate(-10deg); border-radius: 5px; opacity: 0.8; margin-top: 20px; }
+        
+        @print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="margin-bottom: 20px; text-align: center;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #1a237e; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            🖨️ Imprimer le reçu
+        </button>
+    </div>
+
+    <div class="invoice-box">
+        <div class="header">
+            <div class="brand-container">
+                <img src="/media/logos/logo_sani.jpg" alt="Logo SANI-AGRO" class="logo-img">
+                <div class="brand-text">
+                    <h1>SANI-AGRO</h1>
+                    <p>Logistique Agricole Connectée du Mali</p>
+                </div>
+            </div>
+
+            <div class="info">
+                <strong>Reçu N° :</strong> REC-{{ res.id }}-2026<br>
+                <strong>Date :</strong> {{ date_emission|date:"d/m/Y" }}<br>
+                <strong>Client :</strong> {{ res.commercant.user.get_full_name|default:res.commercant.user.username }}
+            </div>
+        </div>
+
+        <h3 style="color: #1a237e; border-left: 5px solid #ffca28; padding-left: 10px;">REÇU DE PAIEMENT DE CAUTION</h3>
+        <p>Ce document certifie le paiement de la caution de 20% pour la réservation de produits agricoles via la plateforme <strong>SANI-AGRO</strong>.</p>
+
+        <table class="details-table">
+            <thead>
+                <tr>
+                    <th>Désignation Produit</th>
+                    <th>Producteur</th>
+                    <th>Quantité</th>
+                    <th>Prix Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ res.produit.nom }}</td>
+                    <td>{{ res.nom_du_producteur }}</td>
+                    <td>{{ res.quantite_voulue }} kg</td>
+                    <td>{{ prix_total|floatformat:0 }} FCFA</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>Total Commande :</span>
+                <span>{{ prix_total|floatformat:0 }} FCFA</span>
+            </div>
+            <div class="total-row" style="background: #e8f5e9; border-left: 4px solid #2e7d32; padding-left: 5px;">
+                <strong>Montant Payé (20%) :</strong>
+                <strong style="color: #2e7d32;">{{ res.caution_20|floatformat:0 }} FCFA</strong>
+            </div>
+            <div class="total-row final-amount">
+                <span>Reste à payer :</span>
+                <span>{{ res.reste_a_payer|floatformat:0 }} FCFA</span>
+            </div>
+        </div>
+
+        <div style="clear: both;"></div>
+
+        <div class="stamp">✅ PAIEMENT VALIDÉ</div>
+
+        <div class="footer">
+            <strong>SANI-AGRO Mali</strong> - Facilitateur Logistique Agroalimentaire<br>
+            Siège social : Bamako, Mali - Document généré informatiquement par la plateforme.
+        </div>
+    </div>
+
+</body>
+</html>

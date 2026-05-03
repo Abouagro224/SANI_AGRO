@@ -1,0 +1,158 @@
+{% extends 'gestion_agro/base.html' %} 
+{% block content %}
+<style>
+    .dashboard-container { font-family: 'Inter', sans-serif; padding: 20px; background-color: #f4f7f9; }
+    .card-mission { 
+        background: white; border-radius: 12px; padding: 25px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid #0d47a1; 
+        margin-bottom: 30px; 
+    }
+    .card-livraison { border-top-color: #ef6c00; background: #fffcf9; }
+    .card-historique { border-top-color: #2e7d32; background: #f9fff9; }
+    
+    .table-agro { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .table-agro th { text-align: left; color: #888; font-size: 11px; text-transform: uppercase; padding: 12px; border-bottom: 2px solid #eee; }
+    .table-agro td { padding: 15px; border-bottom: 1px solid #f1f1f1; vertical-align: middle; }
+    
+    /* Stats Bar */
+    .stats-bar { display: flex; gap: 20px; margin-bottom: 20px; }
+    .stat-item { background: white; padding: 15px; border-radius: 10px; flex: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #0d47a1; }
+    
+    .btn-route { background: #0d47a1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    .btn-route:hover { background: #1565c0; transform: translateY(-2px); }
+    
+    .btn-finish { background: #2e7d32; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .badge-gain { background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
+    
+    /* Nouveau : Style pour les trajets */
+    .route-info { font-size: 0.9em; display: flex; flex-direction: column; gap: 4px; }
+    .client-badge { font-size: 0.8em; color: #666; background: #eee; padding: 2px 8px; border-radius: 4px; }
+</style>
+
+<div class="dashboard-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div>
+            <h1 style="color: #0d47a1; margin: 0; font-weight: 800;">🚚 ESPACE LOGISTIQUE</h1>
+            <p style="color: #666;">Bienvenue, <strong>{{ transp.nom }}</strong> | <span style="background: #e3f2fd; padding: 2px 8px; border-radius: 15px;">🚐 {{ transp.vehicule }}</span></p>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <small style="color: #777;">Missions réussies</small><br>
+                <strong style="font-size: 24px; color: #0d47a1;">{{ total_livraisons }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-mission">
+        <h2 style="margin: 0; color: #0d47a1; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">📦</span> Missions à pourvoir
+        </h2>
+        <table class="table-agro">
+            <thead>
+                <tr>
+                    <th>Détails du Produit</th>
+                    <th>Trajet (Départ ➔ Arrivée)</th>
+                    <th>Gain Estimé</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in missions %}
+                <tr>
+                    <td>
+                        <strong style="color: #1a237e;">{{ m.produit.nom }}</strong><br>
+                        <small style="color: #d32f2f;">Poids : {{ m.quantite_voulue }} {{ m.produit.unite }}</small>
+                    </td>
+                    <td class="route-info">
+                        <span style="color: #555;">📍 Origine : {{ m.nom_du_producteur|default:"Zone de production" }}</span>
+                        <span style="color: #2e7d32; font-weight: bold;">🏁 Destination : {{ m.get_marche_destination_display }}</span>
+                        <span class="client-badge">👤 Client : {{ m.commercant.user.get_full_name|default:m.commercant.user.username }}</span>
+                    </td>
+                    <td><span class="badge-gain">{{ m.gain_potentiel }} FCFA</span></td>
+                    <td>
+                        <form action="{% url 'accepter_mission' m.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-route">Accepter la course</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: #999; padding: 40px;">Aucune nouvelle mission disponible pour le moment.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-mission card-livraison">
+        <h2 style="margin-top: 0; color: #ef6c00; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🚛</span> Mes trajets en cours
+        </h2>
+        <table class="table-agro">
+            <thead>
+                <tr>
+                    <th>Référence & Produit</th>
+                    <th>Infos Livraison</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in livraisons_actives %}
+                <tr>
+                    <td>
+                        <b style="color: #ef6c00;">#LIV-{{ l.id }}</b><br>
+                        <small>{{ l.reservation.produit.nom }} ({{ l.reservation.quantite_voulue }} kg)</small>
+                    </td>
+                    <td>
+                        <strong>Marché : {{ l.reservation.get_marche_destination_display }}</strong><br>
+                        <small>Contact Client : {{ l.reservation.commercant.user.get_full_name }}</small>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <form action="{% url 'terminer_livraison' l.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-finish">✅ Confirmer la livraison</button>
+                            </form>
+                            <a href="tel:{{ l.reservation.commercant.telephone }}" 
+                               style="background: #e3f2fd; color: #0d47a1; padding: 8px; border-radius: 50%; text-decoration: none;" 
+                               title="Appeler le commerçant">📞</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" style="text-align: center; color: #888; padding: 30px;">Aucun trajet actif. Prêt pour une nouvelle mission ?</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-mission card-historique">
+        <h2 style="margin-top: 0; color: #2e7d32; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">📁</span> Historique des revenus
+        </h2>
+        <table class="table-agro">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Référence</th>
+                    <th>Produit & Destination</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in historique %}
+                <tr>
+                    <td><small style="color: #666;">{{ h.date_livraison|date:"d/m/Y" }}</small></td>
+                    <td><strong style="color: #2e7d32;">#SANI-{{ h.id }}</strong></td>
+                    <td>
+                        {{ h.reservation.produit.nom }} ➔ {{ h.reservation.get_marche_destination_display }}
+                    </td>
+                    <td><span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 10px; font-size: 11px;">✅ TERMINÉ</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

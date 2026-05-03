@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Commerçant | Système Agro</title>
+    <style>
+        /* Conservation stricte de tes styles originaux */
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; display: flex; }
+        .sidebar { width: 260px; background: #1a237e; color: white; height: 100vh; position: fixed; padding: 20px; }
+        .content { margin-left: 300px; padding: 40px; width: 100%; }
+        .card-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-item { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .table-box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: #7f8c8d; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8em; }
+        .btn-tel { color: #00acc1; text-decoration: none; font-weight: bold; font-size: 0.9em; }
+        .btn-tel:hover { text-decoration: underline; }
+        
+        .logistique-box { padding: 12px; border-radius: 10px; line-height: 1.5; border-left: 5px solid; }
+        .status-shipping { background: #fff3e0; border-color: #ff7043; } 
+        .status-delivered { background: #e0f2f1; border-color: #26a69a; } 
+        .driver-name { font-weight: bold; color: #333; font-size: 0.9em; }
+
+        .btn-confirm {
+            background: #ff7043;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-confirm:hover { background: #e64a19; }
+
+        .btn-suivi {
+            display: inline-block;
+            background: #1a237e;
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin: 5px 0;
+        }
+
+        /* Style pour les onglets de filtrage */
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { text-decoration: none; padding: 8px 18px; border-radius: 20px; font-size: 0.85em; font-weight: bold; background: #eee; color: #666; transition: 0.3s; }
+        .tab.active { background: #1a237e; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="color: #ffca28;">Agro-Mali</h2>
+        <hr>
+        <p>📊 <strong>Mon Dashboard</strong></p>
+        <a href="/" style="color: white; text-decoration: none; display: block; margin: 20px 0;">🛒 Retour au Marché</a>
+        <a href="/logout/" style="color: #ff8a65; text-decoration: none;">🚪 Déconnexion</a>
+    </div>
+
+    <div class="content">
+        <h1>Tableau de Bord Commerçant</h1>
+        
+        <div class="card-stats">
+            <div class="stat-item" style="border-left: 8px solid #1a237e;">
+                <small>Cautions Payées</small>
+                <h2 style="margin: 5px 0;">{{ total_cautions|floatformat:0 }} FCFA</h2>
+            </div>
+            <div class="stat-item" style="border-left: 8px solid #fb8c00;">
+                <small>Commandes en attente</small>
+                <h2 style="margin: 5px 0;">{{ nb_attente }}</h2>
+            </div>
+            <div class="stat-item" style="border-left: 8px solid #00acc1;">
+                <small>Volume Réservé</small>
+                <h2 style="margin: 5px 0;">{{ total_tonnage }} KG</h2>
+            </div>
+            <div class="stat-item" style="border-left: 8px solid #e91e63;">
+                <small>Reste à Payer (80%)</small> 
+                <h2 style="margin: 5px 0;">{{ total_reste_a_payer|floatformat:0 }} FCFA</h2>
+            </div>
+        </div>
+
+        <div class="table-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3>📦 Historique et Suivi des Livraisons</h3>
+                
+                <div class="filter-tabs">
+                    <a href="?statut=tous" class="tab {% if not statut_actuel or statut_actuel == 'tous' %}active{% endif %}">
+                        📁 Tous
+                    </a>
+                    <a href="?statut=en_cours" class="tab {% if statut_actuel == 'en_cours' %}active{% endif %}">
+                        🚚 En cours
+                    </a>
+                    <a href="?statut=termine" class="tab {% if statut_actuel == 'termine' %}active{% endif %}">
+                        ✅ Terminés
+                    </a>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Quantité</th>
+                        <th>Caution (20%)</th>
+                        <th>Reste (80%)</th> 
+                        <th>Statut Paiement</th>
+                        <th>🚚 Suivi Logistique</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for res in mes_achats %}
+                    <tr>
+                        <td>
+                            <strong>{{ res.produit.nom }}</strong><br>
+                            <small style="color: #666;">Vendeur : {{ res.nom_du_producteur }}</small>
+                        </td>
+                        <td>{{ res.quantite_voulue }} kg</td>
+                        <td style="color: #d32f2f; font-weight: bold;">{{ res.caution_20 }} FCFA</td>
+                        <td style="color: #1a237e; font-weight: bold;">{{ res.reste_a_payer|floatformat:0 }} FCFA</td>
+                        
+                        <td>
+                            {% if res.statut_caution == 'PAYE' %}
+                                <span class="badge" style="background:#e8f5e9; color:#2e7d32;">✅ VALIDÉ</span>
+                                <br>
+                                <a href="{% url 'generer_recu' res.id %}" target="_blank" 
+                                   style="display: inline-block; margin-top: 8px; text-decoration: none; color: #1a237e; font-size: 0.75em; font-weight: bold; border: 1px solid #1a237e; padding: 4px 8px; border-radius: 4px; background: #f0f2ff;">
+                                   📄 Reçu de Paiement
+                                </a>
+                            {% elif res.statut_caution == 'NON_PAYE' %}
+                                <span class="badge" style="background:#fff3e0; color:#e65100;">🕒 ATTENTE</span>
+                            {% else %}
+                                <span class="badge" style="background:#eee; color:#666;">{{ res.statut_caution }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            {% if res.livraison %}
+                                {% if res.livraison.statut == 'LIVRE' %}
+                                    <div class="logistique-box status-delivered">
+                                        <strong style="color: #00695c; display: block; font-size: 0.85em;">✅ MARCHANDISE REÇUE</strong>
+                                        <span class="driver-name">Livreur : {{ res.livraison.transporteur.nom }}</span><br>
+                                        <small>Plaque : {{ res.livraison.transporteur.plaque_immatriculation }}</small>
+                                        <br>
+                                        <a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Voir le trajet</a>
+                                    </div>
+                                {% else %}
+                                    <div class="logistique-box status-shipping">
+                                        <strong style="color: #d84315; display: block; font-size: 0.85em;">🚚 TRANSPORT EN COURS</strong>
+                                        <span class="driver-name">Chauffeur : {{ res.livraison.transporteur.nom }}</span><br>
+                                        <span style="font-size: 0.8em; font-weight: bold;">🆔 Plaque : {{ res.livraison.transporteur.plaque_immatriculation }}</span><br>
+                                        
+                                        <a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Suivre mon camion</a>
+                                        <br>
+                                        
+                                        <form action="{% url 'confirmer_reception' res.livraison.id %}" method="POST" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-confirm">
+                                                Confirmer la réception
+                                            </button>
+                                        </form>
+                                        <br>
+                                        
+                                        <a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">
+                                            📞 Appeler : {{ res.livraison.transporteur.telephone }}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                {% if res.statut_caution == 'PAYE' %}
+                                    <span style="font-size: 0.85em; color: #7f8c8d; font-style: italic;">
+                                        🔍 Recherche chauffeur...
+                                    </span>
+                                {% else %}
+                                    <span style="font-size: 0.85em; color: #ccc;">Attente validation producteur</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">Aucun achat enregistré.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

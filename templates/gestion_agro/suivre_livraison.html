@@ -1,0 +1,59 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<div style="padding: 40px; font-family: 'Segoe UI', sans-serif; background: #f4f7f6; min-height: 100vh;">
+    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: auto;">
+        
+        <h1 style="color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 10px;">
+            📍 Suivi Logistique : {{ livraison.reservation.produit.nom }}
+        </h1>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; color: #555;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                {% if livraison.transporteur.photo_profil %}
+                    <img src="{{ livraison.transporteur.photo_profil.url }}" alt="Profil" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #1a237e;">
+                {% else %}
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 1.5em; border: 2px solid #ddd; color: #999;">👤</div>
+                {% endif %}
+                
+                <div>
+                    <span>Transporteur : <strong>{{ livraison.transporteur.nom }}</strong></span><br>
+                    <small style="color: #1a237e; font-weight: bold;">🚛 Plaque : {{ livraison.transporteur.plaque_immatriculation }}</small><br>
+                    <a href="tel:{{ livraison.transporteur.telephone }}" style="color: #00acc1; text-decoration: none; font-weight: bold; font-size: 0.9em;">
+                        📞 Appeler : {{ livraison.transporteur.telephone }}
+                    </a>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <span>Destination : <strong>{{ livraison.reservation.get_marche_destination_display }}</strong></span><br>
+                <small style="color: #7f8c8d;">Origine : {{ livraison.reservation.produit.zone_production }}</small>
+            </div>
+        </div>
+
+        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9em; color: #2e7d32; border: 1px solid #c8e6c9;">
+            🛡️ <strong>Sécurité SANI-AGRO :</strong> Vérifiez la plaque et la photo du chauffeur avant le déchargement.
+        </div>
+
+        <h3 style="margin-top: 30px; color: #333;">Historique du trajet</h3>
+        <div style="border-left: 4px solid #1a237e; padding-left: 20px; margin-left: 10px;">
+            {% for etape in etapes %}
+            <div style="margin-bottom: 25px; position: relative;">
+                <div style="width: 15px; height: 15px; background: #1a237e; border-radius: 50%; position: absolute; left: -30px; top: 5px; border: 3px solid white;"></div>
+                <strong style="font-size: 1.1em; color: #2e7d32;">{{ etape.localisation }}</strong> 
+                <small style="color: #999; margin-left: 10px;">{{ etape.date_heure|date:"d/m H:i" }}</small>
+                <p style="margin: 5px 0; color: #444; font-size: 1em;">{{ etape.etape }}</p>
+                <code style="background: #eee; padding: 2px 5px; border-radius: 4px; font-size: 0.8em;">ID TRACABILITÉ: {{ etape.code_tracabilite }}</code>
+            </div>
+            {% empty %}
+            <p style="color: #999; font-style: italic;">Le camion n'a pas encore pris la route.</p>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <a href="{% url 'dashboard_commercant' %}" style="text-decoration: none; background: #1a237e; color: white; padding: 12px 25px; border-radius: 8px; font-weight: bold;">
+                ← Retour au Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

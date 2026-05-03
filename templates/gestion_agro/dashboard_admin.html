@@ -1,0 +1,80 @@
+{% extends 'gestion_agro/base.html' %}
+
+{% block content %}
+<style>
+    /* On utilise les couleurs de l'admin Django */
+    .django-header { background: #417690; color: white; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
+    .stat-box { border: 1px solid #ccc; padding: 20px; border-radius: 4px; background: #fff; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 24px; font-weight: bold; color: #417690; display: block; }
+    .stat-title { color: #666; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+    .my-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    .my-table th { background: #79aec8; color: white; padding: 10px; text-align: left; }
+    .my-table td { border-bottom: 1px solid #eee; padding: 10px; }
+    .btn-django { background: #102820; color: white !important; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 13px; }
+</style>
+
+<div class="container" style="padding: 20px;">
+    
+    <div class="django-header d-flex justify-content-between align-items-center">
+        <h2 style="margin:0;">Administration SANI-AGRO : Statistiques</h2>
+        <div>
+            <a href="/admin/gestion_agro/livraison/" class="btn-django">📦 Livraisons</a>
+            <a href="/admin/gestion_agro/reservation/" class="btn-django">📝 Réservations</a>
+        </div>
+    </div>
+
+    <div class="row" style="display: flex; gap: 20px; margin-bottom: 30px;">
+        <div style="flex: 1;" class="stat-box">
+            <span class="stat-title">Litiges</span>
+            <span class="stat-number">{{ nb_litiges }}</span>
+        </div>
+        <div style="flex: 1;" class="stat-box">
+            <span class="stat-title">Camions Actifs</span>
+            <span class="stat-number">{{ flux_actif }}</span>
+        </div>
+        <div style="flex: 1;" class="stat-box">
+            <span class="stat-title">Cautions (FCFA)</span>
+            <span class="stat-number" style="color: #264b3d;">{{ argent_securise }}</span>
+        </div>
+    </div>
+
+    <div class="row" style="display: flex; gap: 20px;">
+        <div style="flex: 2;">
+            <table class="my-table">
+                <thead>
+                    <tr>
+                        <th>PRODUIT</th>
+                        <th>QUANTITÉ ARRIVÉE (KG)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stats_marche %}
+                    <tr>
+                        <td>{{ item.produit__nom }}</td>
+                        <td><strong>{{ item.total_tonnes }}</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2">Aucune donnée</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="flex: 1;">
+            <table class="my-table">
+                <thead>
+                    <tr><th>ORIGINE</th><th>TOTAL</th></tr>
+                </thead>
+                <tbody>
+                    {% for p in provenance %}
+                    <tr>
+                        <td>{{ p.produit__zone_origine }}</td>
+                        <td>{{ p.total }} KG</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

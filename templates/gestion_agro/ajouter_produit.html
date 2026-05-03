@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Publier une Récolte</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px; display: flex; justify-content: center; }
+        .form-container { background: white; width: 100%; max-width: 600px; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 8px solid #2e7d32; }
+        
+        h2 { color: #2e7d32; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 24px; }
+        p.subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+        
+        input[type="text"], input[type="number"], select, input[type="date"] {
+            width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; transition: 0.3s; box-sizing: border-box;
+        }
+        
+        input:focus { border-color: #2e7d32; outline: none; box-shadow: 0 0 8px rgba(46, 125, 50, 0.1); }
+
+        /* Style spécial pour les fichiers (Image et Vidéo) */
+        .file-input-wrapper { background: #f9f9f9; border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .file-input-wrapper:hover { border-color: #2e7d32; background: #f0f7f0; }
+        input[type="file"] { margin-top: 5px; font-size: 13px; }
+
+        .btn-submit { 
+            width: 100%; background: linear-gradient(135deg, #2e7d32, #1b5e20); color: white; border: none; 
+            padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2); transition: 0.3s; margin-top: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46, 125, 50, 0.3); }
+        
+        .btn-back { display: block; text-align: center; margin-top: 20px; color: #888; text-decoration: none; font-size: 14px; }
+        .btn-back:hover { color: #2e7d32; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>🌿 Nouvelle Publication</h2>
+    <p class="subtitle">Remplissez les détails de votre récolte pour attirer les commerçants.</p>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Nom du Produit (ex: Pomme de terre, Maïs...)</label>
+            <input type="text" name="nom" placeholder="Qu'avez-vous à vendre ?" required>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Quantité Totale Prévue</label>
+                <input type="number" name="quantite_initiale" placeholder="Ex: 1000" required>
+            </div>
+            <div class="form-group">
+                <label>Unité</label>
+                <select name="unite">
+                    <option value="KG">Kilogrammes (KG)</option>
+                    <option value="TONNE">Tonnes</option>
+                    <option value="SAC">Sacs</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Prix Unitaire (FCFA)</label>
+                <input type="number" name="prix_unitaire" placeholder="Prix par KG" required>
+            </div>
+            <div class="form-group">
+                <label>Zone d'Origine</label>
+                <input type="text" name="zone_origine" placeholder="Ex: Sikasso, Koutiala" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>État de la récolte</label>
+            <select name="statut_recolte">
+                <option value="SUR_PIED">🌳 En cours de maturité (Sur pied)</option>
+                <option value="RECOLTE">📦 Récolté et prêt à la livraison</option>
+            </select>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+
+        <div class="form-group">
+            <label>📸 Photo du produit (Obligatoire)</label>
+            <div class="file-input-wrapper">
+                <input type="file" name="image" accept="image/*" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>🎥 Vidéo de démonstration (Optionnelle)</label>
+            <div class="file-input-wrapper" style="border-color: #0288d1;">
+                <input type="file" name="video_demonstration" accept="video/*">
+                <p style="font-size: 11px; color: #0288d1; margin-top: 5px;">Filmez votre champ pour prouver la qualité !</p>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">PUBLIER LA RÉCOLTE</button>
+        
+        <a href="{% url 'dashboard_producteur' %}" class="btn-back">⬅️ Retour au tableau de bord</a>
+    </form>
+</div>
+
+</body>
+</html>

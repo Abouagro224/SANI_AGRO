@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Modifier le produit</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f7; padding: 30px; }
+        .form-card { 
+            max-width: 500px; margin: auto; background: white; 
+            border-radius: 12px; overflow: hidden; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+        }
+        .form-header { background: #2e7d32; color: white; padding: 20px; text-align: center; }
+        .form-body { padding: 25px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #2e7d32; }
+        input, select { 
+            width: 100%; padding: 12px; margin-top: 8px; 
+            border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; 
+        }
+        .btn-save { 
+            width: 100%; background: #0288d1; color: white; padding: 15px; 
+            border: none; border-radius: 6px; cursor: pointer; 
+            font-weight: bold; font-size: 16px; margin-top: 25px; 
+        }
+        .btn-save:hover { background: #01579b; }
+        .img-preview { width: 100px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="form-card">
+    <div class="form-header">
+        <h2 style="margin:0;">Modifier ma publication</h2>
+    </div>
+
+    <div class="form-body">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <label>Nom du produit</label>
+            <input type="text" name="nom" value="{{ produit.nom }}" required>
+
+            <label>Quantité prévue</label>
+            <input type="number" name="quantite_initiale" value="{{ produit.quantite_initiale }}" required>
+
+            <label>État de la récolte</label>
+            <select name="statut_recolte" id="statut_select" onchange="toggleDate()">
+                <option value="SUR_PIED" {% if produit.statut_recolte == 'SUR_PIED' %}selected{% endif %}>🌳 Sur pied</option>
+                <option value="RECOLTE" {% if produit.statut_recolte == 'RECOLTE' %}selected{% endif %}>📦 Récolté</option>
+            </select>
+
+            <div id="date_div">
+                <label>Date de récolte prévue</label>
+                <input type="date" name="date_recolte_prevue" value="{{ produit.date_recolte_prevue|date:'Y-m-d' }}">
+            </div>
+
+            <label>Prix (FCFA)</label>
+            <input type="number" name="prix_unitaire" value="{{ produit.prix_unitaire }}" required>
+
+            <label>Zone d'origine</label>
+            <input type="text" name="zone_origine" value="{{ produit.zone_origine }}" required>
+
+            <label>Photo du produit</label>
+            {% if produit.image %}
+                <div><img src="{{ produit.image.url }}" class="img-preview"></div>
+            {% endif %}
+            <input type="file" name="image">
+
+            <button type="submit" class="btn-save">ENREGISTRER LES MODIFICATIONS</button>
+        </form>
+        
+        <a href="{% url 'dashboard_producteur' %}" class="back-link">Annuler et retourner</a>
+    </div>
+</div>
+
+<script>
+    function toggleDate() {
+        var statut = document.getElementById("statut_select").value;
+        var dateDiv = document.getElementById("date_div");
+        dateDiv.style.display = (statut === "RECOLTE") ? "none" : "block";
+    }
+    // Lancer au démarrage pour vérifier l'état actuel
+    window.onload = toggleDate;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Plateforme Logistique</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #f4f7f6; }
+        nav { background: #0d47a1; color: white; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 900; font-size: 20px; letter-spacing: 1px; }
+        .content { padding: 20px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">SANI-AGRO 🇲🇱</div>
+        <div>
+            <strong>{{ request.user.username }}</strong>
+            <a href="/logout/" style="color: white; margin-left: 15px; text-decoration: none; font-size: 12px;">Déconnexion</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>
