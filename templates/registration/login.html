@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; font-family: sans-serif;">
+    <h2 style="text-align: center; color: #2c3e50;">Connexion SANI-AGRO</h2>
+    
+    {% if form.errors %}
+        <p style="color: red; text-align: center;">Identifiant ou mot de passe incorrect.</p>
+    {% endif %}
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        
+        <div>
+            {{ form.as_p }}
+        </div>
+
+        <button type="submit" style="background-color: #27ae60; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Se connecter
+        </button>
+    </form>
+
+    <p style="margin-top: 20px; text-align: center;">
+        Pas encore de compte ? <a href="{% url 'inscription_choix' %}" style="color: #2980b9;">Inscrivez-vous ici</a>
+    </p>
+</div>
+{% endblock %}

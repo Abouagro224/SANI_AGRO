@@ -21,10 +21,15 @@
     .btn-route { background: #0d47a1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
     .btn-route:hover { background: #1565c0; transform: translateY(-2px); }
     
+    .btn-load { background: #f57c00; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+    .btn-load:hover { background: #e65100; }
+    
     .btn-finish { background: #2e7d32; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     .badge-gain { background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-weight: bold; }
     
-    /* Nouveau : Style pour les trajets */
+    .badge-status { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+    
+    /* Trajets */
     .route-info { font-size: 0.9em; display: flex; flex-direction: column; gap: 4px; }
     .client-badge { font-size: 0.8em; color: #666; background: #eee; padding: 2px 8px; border-radius: 4px; }
 </style>
@@ -43,6 +48,14 @@
             </div>
         </div>
     </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #e8f5e9; color: #2e7d32; font-weight: bold;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
     <div class="card-mission">
         <h2 style="margin: 0; color: #0d47a1; display: flex; align-items: center; gap: 10px;">
@@ -65,7 +78,7 @@
                         <small style="color: #d32f2f;">Poids : {{ m.quantite_voulue }} {{ m.produit.unite }}</small>
                     </td>
                     <td class="route-info">
-                        <span style="color: #555;">📍 Origine : {{ m.nom_du_producteur|default:"Zone de production" }}</span>
+                        <span style="color: #555;">📍 Origine : {{ m.produit.zone_origine }} ({{ m.produit.get_zone_production_display }})</span>
                         <span style="color: #2e7d32; font-weight: bold;">🏁 Destination : {{ m.get_marche_destination_display }}</span>
                         <span class="client-badge">👤 Client : {{ m.commercant.user.get_full_name|default:m.commercant.user.username }}</span>
                     </td>
@@ -92,8 +105,8 @@
             <thead>
                 <tr>
                     <th>Référence & Produit</th>
-                    <th>Infos Livraison</th>
-                    <th>Actions</th>
+                    <th>Infos Livraison & Statut</th>
+                    <th>Actions Logistiques</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,21 +114,35 @@
                 <tr>
                     <td>
                         <b style="color: #ef6c00;">#LIV-{{ l.id }}</b><br>
-                        <small>{{ l.reservation.produit.nom }} ({{ l.reservation.quantite_voulue }} kg)</small>
+                        <small>{{ l.reservation.produit.nom }} ({{ l.reservation.quantite_voulue }} {{ l.reservation.produit.unite }})</small>
                     </td>
                     <td>
                         <strong>Marché : {{ l.reservation.get_marche_destination_display }}</strong><br>
-                        <small>Contact Client : {{ l.reservation.commercant.user.get_full_name }}</small>
+                        <small style="display: block; margin-bottom: 5px;">Contact Client : {{ l.reservation.commercant.telephone }}</small>
+                        
+                        {% if l.statut == 'en_attente' %}
+                            <span class="badge-status" style="background: #ffe0b2; color: #e65100;">En attente de chargement au champ</span>
+                        {% else %}
+                            <span class="badge-status" style="background: #e3f2fd; color: #0d47a1;">En route vers la destination</span>
+                        {% endif %}
                     </td>
                     <td>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <form action="{% url 'terminer_livraison' l.id %}" method="POST">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-finish">✅ Confirmer la livraison</button>
-                            </form>
+                            {% if l.statut == 'en_attente' %}
+                                <form action="{% url 'charger_marchandise' l.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-load"><i class="fas fa-truck-loading"></i> Confirmer le Chargement</button>
+                                </form>
+                            {% else %}
+                                <form action="{% url 'terminer_livraison' l.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-finish">✅ Confirmer la livraison</button>
+                                </form>
+                            {% endif %}
+
                             <a href="tel:{{ l.reservation.commercant.telephone }}" 
-                               style="background: #e3f2fd; color: #0d47a1; padding: 8px; border-radius: 50%; text-decoration: none;" 
-                               title="Appeler le commerçant">📞</a>
+                               style="background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 50%; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px;" 
+                               title="Appeler le commerçant"><i class="fas fa-phone"></i></a>
                         </div>
                     </td>
                 </tr>
@@ -133,7 +160,7 @@
         <table class="table-agro">
             <thead>
                 <tr>
-                    <th>Date</th>
+                    <th>Date Réelle</th>
                     <th>Référence</th>
                     <th>Produit & Destination</th>
                     <th>Status</th>
@@ -142,13 +169,15 @@
             <tbody>
                 {% for h in historique %}
                 <tr>
-                    <td><small style="color: #666;">{{ h.date_livraison|date:"d/m/Y" }}</small></td>
+                    <td><small style="color: #666;">{{ h.date_livraison_reelle|date:"d/m/Y à H:i" }}</small></td>
                     <td><strong style="color: #2e7d32;">#SANI-{{ h.id }}</strong></td>
                     <td>
                         {{ h.reservation.produit.nom }} ➔ {{ h.reservation.get_marche_destination_display }}
                     </td>
                     <td><span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 10px; font-size: 11px;">✅ TERMINÉ</span></td>
                 </tr>
+                {% empty %}
+                <tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">Aucune course enregistrée dans l'historique.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

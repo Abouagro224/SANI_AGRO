@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Choisir votre rôle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; padding: 50px 0; }
+        .role-option { 
+            background: white; border-radius: 20px; padding: 30px; 
+            text-align: center; transition: 0.3s; cursor: pointer;
+            border: 2px solid transparent; text-decoration: none; color: inherit; display: block;
+        }
+        .role-option:hover { border-color: #2e7d32; transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .icon-box { font-size: 50px; color: #2e7d32; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h2 class="mb-5 fw-bold" style="color: #2e7d32;">Qui êtes-vous ?</h2>
+        <div class="row g-4 justify-content-center">
+            
+            <div class="col-md-4">
+                <a href="{% url 'inscription_final' 'producteur' %}" class="role-option shadow-sm">
+                    <div class="icon-box"><i class="fas fa-tractor"></i></div>
+                    <h4>Producteur</h4>
+                    <p class="text-muted">Je cultive et je veux vendre mes récoltes.</p>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{% url 'inscription_final' 'commercant' %}" class="role-option shadow-sm">
+                    <div class="icon-box"><i class="fas fa-store"></i></div>
+                    <h4>Commerçant</h4>
+                    <p class="text-muted">J'achète des produits pour les revendre au marché.</p>
+                </a>
+            </div>
+
+            <div class="col-md-4">
+                <a href="{% url 'inscription_final' 'transporteur' %}" class="role-option shadow-sm">
+                    <div class="icon-box"><i class="fas fa-truck-moving"></i></div>
+                    <h4>Transporteur</h4>
+                    <p class="text-muted">J'ai un véhicule pour transporter les marchandises.</p>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

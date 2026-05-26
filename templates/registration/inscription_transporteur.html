@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>SANI-AGRO | Partenaire Transport</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #f57c00; --bg: #fffbf7; }
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; padding: 40px 0; }
+        .form-card { background: white; border-radius: 25px; padding: 40px; box-shadow: 0 15px 35px rgba(245,124,0,0.1); border-top: 10px solid var(--primary); }
+        .helptext, ul.helptext { display: none; }
+        .section-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 800; color: var(--primary); margin: 25px 0 15px; display: block; border-bottom: 1px solid #ffe0b2; }
+        .form-control { border-radius: 12px; padding: 12px; border: 1.5px solid #eee; background: #fafafa; }
+        .form-control:focus { border-color: var(--primary); background: #fff; box-shadow: none; }
+        label { font-weight: 600; font-size: 0.9rem; margin-bottom: 7px; color: #444; }
+        .btn-transport { border-radius: 12px; padding: 15px; font-weight: 700; background: var(--primary); border: none; color: white; transition: 0.3s; }
+        .btn-transport:hover { background: #e65100; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="form-card">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-truck-fast fa-3x text-warning mb-3"></i>
+                        <h2 class="fw-bold" style="color: #333;">Inscription Transporteur</h2>
+                        <p class="text-muted">Optimisez vos trajets et boostez vos revenus</p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <span class="section-label">Compte Utilisateur</span>
+                        {{ form.as_p }}
+
+                        <span class="section-label">Détails Logistiques</span>
+                        <div class="mb-3">
+                            <label>Nom du Transporteur / Compagnie</label>
+                            <input type="text" name="nom_compagnie" class="form-control" placeholder="Ex: Transports Doumbia Express" required>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Type de véhicule</label>
+                                <input type="text" name="type_vehicule" class="form-control" placeholder="Ex: Camion 10 tonnes" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>N° Plaque d'immatriculation</label>
+                                <input type="text" name="numero_plaque" class="form-control" placeholder="Ex: AM-1234-B2" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>Téléphone</label>
+                                <input type="text" name="telephone" class="form-control" placeholder="Ex: 76 45 59 92" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>Tarif de base (FCFA)</label>
+                                <input type="number" name="tarif_base" class="form-control" placeholder="Ex: 5000" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label><i class="fas fa-image me-2"></i>Photo du véhicule ou Profil</label>
+                            <input type="file" name="photo_profil" class="form-control" accept="image/*">
+                        </div>
+
+                        <button type="submit" class="btn btn-transport w-100 shadow">
+                            Activer mon profil transporteur <i class="fas fa-road ms-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

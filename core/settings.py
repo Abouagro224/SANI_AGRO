@@ -63,6 +63,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'gestion_agro.context_processors.notifications_non_lues',
             ],
         },
     },
@@ -121,3 +122,5 @@ STATIC_URL = 'static/'
 MEDIA_URL ='/media/'
 # 2. Le dossier reel sur mon ordinateur
 MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+LOGIN_REDIRECT_URL = 'direction_vue'  # Nom de ton URL n°1 sur l'image
+LOGOUT_REDIRECT_URL = 'login'   # Redirection après déconnexion

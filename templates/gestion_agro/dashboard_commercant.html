@@ -15,10 +15,11 @@
         th { text-align: left; padding: 12px; color: #7f8c8d; border-bottom: 2px solid #eee; }
         td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
         .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8em; }
-        .btn-tel { color: #00acc1; text-decoration: none; font-weight: bold; font-size: 0.9em; }
+        .btn-tel { color: #00acc1; text-decoration: none; font-weight: bold; font-size: 0.9em; display: inline-block; margin-top: 5px; }
         .btn-tel:hover { text-decoration: underline; }
         
         .logistique-box { padding: 12px; border-radius: 10px; line-height: 1.5; border-left: 5px solid; }
+        .status-waiting { background: #efebe9; border-color: #8d6e63; } /* Nouveau : Style pour attente de chargement */
         .status-shipping { background: #fff3e0; border-color: #ff7043; } 
         .status-delivered { background: #e0f2f1; border-color: #26a69a; } 
         .driver-name { font-weight: bold; color: #333; font-size: 0.9em; }
@@ -105,8 +106,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Produit</th>
-                        <th>Quantité</th>
+                        <th>Produit & Échéance</th> <th>Quantité</th>
                         <th>Caution (20%)</th>
                         <th>Reste (80%)</th> 
                         <th>Statut Paiement</th>
@@ -117,10 +117,13 @@
                     {% for res in mes_achats %}
                     <tr>
                         <td>
-                            <strong>{{ res.produit.nom }}</strong><br>
-                            <small style="color: #666;">Vendeur : {{ res.nom_du_producteur }}</small>
+                            <strong style="font-size: 1.1em; color: #1a237e;">{{ res.produit.nom }}</strong><br>
+                            <small style="color: #666; display: block; margin-bottom: 4px;">Vendeur : {{ res.nom_du_producteur }}</small>
+                            <span style="font-size: 11px; background: #ffebee; color: #c62828; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
+                                ⏳ Limite fraîcheur : {{ res.produit.date_peremption_prevue|date:"d/m/Y" }}
+                            </span>
                         </td>
-                        <td>{{ res.quantite_voulue }} kg</td>
+                        <td><strong>{{ res.quantite_voulue }}</strong> kg</td>
                         <td style="color: #d32f2f; font-weight: bold;">{{ res.caution_20 }} FCFA</td>
                         <td style="color: #1a237e; font-weight: bold;">{{ res.reste_a_payer|floatformat:0 }} FCFA</td>
                         
@@ -145,15 +148,24 @@
                                     <div class="logistique-box status-delivered">
                                         <strong style="color: #00695c; display: block; font-size: 0.85em;">✅ MARCHANDISE REÇUE</strong>
                                         <span class="driver-name">Livreur : {{ res.livraison.transporteur.nom }}</span><br>
-                                        <small>Plaque : {{ res.livraison.transporteur.plaque_immatriculation }}</small>
+                                        <small>Plaque : {{ res.livraison.transporteur.vehicule }}</small>
                                         <br>
                                         <a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Voir le trajet</a>
                                     </div>
+                                {% elif res.livraison.statut == 'en_attente' %}
+                                    <div class="logistique-box status-waiting">
+                                        <strong style="color: #4e342e; display: block; font-size: 0.85em;">🚜 CHAUFFEUR EN ROUTE VERS LE CHAMP</strong>
+                                        <span class="driver-name">Chauffeur : {{ res.livraison.transporteur.nom }}</span><br>
+                                        <small>Véhicule : {{ res.livraison.transporteur.vehicule }}</small><br>
+                                        <a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">
+                                            📞 Appeler Chauffeur
+                                        </a>
+                                    </div>
                                 {% else %}
                                     <div class="logistique-box status-shipping">
-                                        <strong style="color: #d84315; display: block; font-size: 0.85em;">🚚 TRANSPORT EN COURS</strong>
+                                        <strong style="color: #d84315; display: block; font-size: 0.85em;">🚚 TRANSPORT EN COURS (CHARGÉ)</strong>
                                         <span class="driver-name">Chauffeur : {{ res.livraison.transporteur.nom }}</span><br>
-                                        <span style="font-size: 0.8em; font-weight: bold;">🆔 Plaque : {{ res.livraison.transporteur.plaque_immatriculation }}</span><br>
+                                        <span style="font-size: 0.8em; font-weight: bold;">🆔 Véhicule : {{ res.livraison.transporteur.vehicule }}</span><br>
                                         
                                         <a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Suivre mon camion</a>
                                         <br>

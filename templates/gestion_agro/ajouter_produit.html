@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>SANI-AGRO | Publier une Récolte</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px; display: flex; justify-content: center; }
         .form-container { background: white; width: 100%; max-width: 600px; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 8px solid #2e7d32; }
@@ -19,7 +20,6 @@
         
         input:focus { border-color: #2e7d32; outline: none; box-shadow: 0 0 8px rgba(46, 125, 50, 0.1); }
 
-        /* Style spécial pour les fichiers (Image et Vidéo) */
         .file-input-wrapper { background: #f9f9f9; border: 2px dashed #ccc; padding: 20px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
         .file-input-wrapper:hover { border-color: #2e7d32; background: #f0f7f0; }
         input[type="file"] { margin-top: 5px; font-size: 13px; }
@@ -69,20 +69,43 @@
         <div class="grid-2">
             <div class="form-group">
                 <label>Prix Unitaire (FCFA)</label>
-                <input type="number" name="prix_unitaire" placeholder="Prix par KG" required>
+                <input type="number" name="prix_unitaire" placeholder="Prix par unité" required>
             </div>
             <div class="form-group">
-                <label>Zone d'Origine</label>
-                <input type="text" name="zone_origine" placeholder="Ex: Sikasso, Koutiala" required>
+                <label>État de la récolte</label>
+                <select name="statut_recolte">
+                    <option value="SUR_PIED">🌳 En cours de maturité (Sur pied)</option>
+                    <option value="RECOLTE">📦 Récolté et prêt</option>
+                </select>
             </div>
         </div>
 
-        <div class="form-group">
-            <label>État de la récolte</label>
-            <select name="statut_recolte">
-                <option value="SUR_PIED">🌳 En cours de maturité (Sur pied)</option>
-                <option value="RECOLTE">📦 Récolté et prêt à la livraison</option>
-            </select>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Zone Générale (Filtre)</label>
+                <select name="zone_production" required>
+                    <option value="SIKASSO">Sikasso</option>
+                    <option value="BAGUINEDA">Baguineda</option>
+                    <option value="SEGOU">Ségou</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Village ou Commune d'Origine</label>
+                <input type="text" name="zone_origine" placeholder="Ex: Cercle de Bougouni" required>
+            </div>
+        </div>
+
+        <h3 style="color: #1b5e20; font-size: 16px; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📅 Planification</h3>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Date de récolte (Prévue/Réelle)</label>
+                <input type="date" name="date_recolte_prevue" required>
+            </div>
+            <div class="form-group">
+                <label>Date de péremption (Optionnel)</label>
+                <input type="date" name="date_peremption_prevue">
+                <small style="font-size: 11px; color: #777;">Laisser vide pour calcul automatique.</small>
+            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
@@ -95,10 +118,10 @@
         </div>
 
         <div class="form-group">
-            <label>🎥 Vidéo de démonstration (Optionnelle)</label>
+            <label>🎥 Vidéo / Message vocal de démonstration</label>
             <div class="file-input-wrapper" style="border-color: #0288d1;">
                 <input type="file" name="video_demonstration" accept="video/*">
-                <p style="font-size: 11px; color: #0288d1; margin-top: 5px;">Filmez votre champ pour prouver la qualité !</p>
+                <p style="font-size: 11px; color: #0288d1; margin-top: 5px;"><i class="fas fa-microphone"></i> Décrivez votre produit de vive voix !</p>
             </div>
         </div>
 

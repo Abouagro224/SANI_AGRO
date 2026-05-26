@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANI-AGRO | Plateforme Agro-Logistique</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <style>
+        :root { 
+            --primary: #28a745; 
+            --accent: #cadf13; 
+        }
+        
+        body { background-color: #f8faf9; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* NAVBAR SANI-AGRO */
+        .navbar {
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.8) !important;
+            border-bottom: 1px solid rgba(40, 167, 69, 0.1);
+            padding: 15px 0;
+        }
+
+        /* CAROUSEL AJUSTÉ */
+        .carousel-item { height: 85vh; min-height: 500px; position: relative; overflow: hidden; }
+        .carousel-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+        }
+        .carousel-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%);
+        }
+
+        /* TYPOGRAPHIE ET TITRES */
+        .hero-title { 
+            font-size: 5rem; font-weight: 800; line-height: 1; margin-bottom: 20px;
+            color: white; text-transform: uppercase;
+        }
+
+        /* CARTES ACTEURS */
+        .role-card { 
+            border: none; border-radius: 35px; transition: all 0.4s ease;
+            background: #ffffff; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
+        }
+        .role-card:hover { transform: translateY(-15px); box-shadow: 0 30px 60px rgba(40, 167, 69, 0.15); }
+
+        /* RECADRAGE DES IMAGES POUR QU'ELLES NE SOIENT PAS TROP GROSSES */
+        .card-img-header { height: 180px; width: 100%; object-fit: cover; }
+        
+        .icon-circle { 
+            width: 75px; height: 75px; 
+            background: linear-gradient(135deg, var(--primary), #b4e63e);
+            border-radius: 22px; display: flex; align-items: center; justify-content: center; 
+            margin: -50px auto 20px; position: relative; z-index: 10;
+            box-shadow: 0 15px 30px rgba(40, 167, 69, 0.2);
+            border: 5px solid white; color: white; font-size: 28px;
+        }
+
+        .btn-agro { 
+            background: linear-gradient(90deg, var(--primary), #20c997);
+            color: white; border-radius: 15px; padding: 15px; font-weight: 700;
+            border: none; transition: 0.3s; text-transform: uppercase; width: 100%;
+            display: inline-block; text-decoration: none; text-align: center;
+        }
+        .btn-agro:hover { transform: scale(1.02); color: white; box-shadow: 0 10px 20px rgba(32, 201, 151, 0.4); }
+
+        .footer-premium { background: #0a1f10; padding: 40px 0; color: white; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top px-lg-5">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-success" href="/">
+                <i class="fas fa-leaf me-2"></i>SANI-AGRO
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    <span class="small fw-bold me-3">Bonjour, <span class="text-success">{{ user.username }}</span></span>
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-4">Quitter</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-link text-dark text-decoration-none me-3 fw-bold">Connexion</a>
+                    <a href="{% url 'inscription_choix' %}" class="btn btn-success rounded-pill px-4 shadow fw-bold">S'inscrire</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div id="agroSlider" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+        <div class="carousel-inner">
+            
+            <div class="carousel-item active">
+                <div class="carousel-bg" style="background-image: url('https://images.unsplash.com/photo-1592982537447-6f2a6a0c7c18?auto=format&fit=crop&w=1350&q=80');"></div>
+                <div class="carousel-overlay"></div>
+                <div class="carousel-caption text-start pb-5">
+                    <h1 class="hero-title animate__animated animate__fadeInLeft">RENTABILITÉ</h1>
+                    <p class="fs-4 fw-light animate__animated animate__fadeInUp">Optimisez vos récoltes pour un rendement maximal.</p>
+                </div>
+            </div>
+            
+            <div class="carousel-item">
+                <div class="carousel-bg" style="background-image: url('https://plus.unsplash.com/premium_photo-1661962634351-93e15037d046?q=80&w=2070&auto=format&fit=crop');"></div>
+                <div class="carousel-overlay"></div>
+                <div class="carousel-caption text-center pb-5">
+                    <h1 class="hero-title animate__animated animate__zoomIn">TRANSPARENCE</h1>
+                    <p class="fs-4 fw-light animate__animated animate__fadeInUp">Un marché équitable sans intermédiaires cachés.</p>
+                </div>
+            </div>
+
+            <div class="carousel-item">
+                <div class="carousel-bg" style="background-image: url('https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=2075&auto=format&fit=crop');"></div>
+                <div class="carousel-overlay"></div>
+                <div class="carousel-caption text-end pb-5">
+                    <h1 class="hero-title animate__animated animate__fadeInRight">TRAÇABILITÉ</h1>
+                    <p class="fs-4 fw-light animate__animated animate__fadeInUp">Suivi en temps réel de la ferme au consommateur.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="container" style="margin-top: -100px; position: relative; z-index: 100;">
+        <div class="row g-4 justify-content-center">
+            
+            <div class="col-md-4">
+                <div class="card role-card h-100 shadow">
+                    <img src="https://images.unsplash.com/photo-1560493676-04071c5f467b?auto=format&fit=crop&w=600&q=80" class="card-img-header" alt="Production">
+                    <div class="card-body p-4 pt-0 text-center">
+                        <div class="icon-circle"><i class="fas fa-chart-line"></i></div>
+                        <h3 class="fw-bold mb-3">Producteur</h3>
+                        <p class="text-muted small mb-4">Numérisez votre exploitation pour une productivité accrue.</p>
+                        
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard_producteur' %}" class="btn-agro">Mon Tableau de Bord</a>
+                        {% else %}
+                            <a href="{% url 'clic_vendre' %}" class="btn-agro">Démarrer la Production</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card role-card h-100 shadow">
+                    <img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=600&q=80" class="card-img-header" alt="Marché">
+                    <div class="card-body p-4 pt-0 text-center">
+                        <div class="icon-circle"><i class="fas fa-handshake"></i></div>
+                        <h3 class="fw-bold mb-3">Commerçant</h3>
+                        <p class="text-muted small mb-4">Accédez à des produits certifiés en toute confiance.</p>
+                        
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard_commercant' %}" class="btn-agro">Mon Tableau de Bord</a>
+                        {% else %}
+                            <a href="{% url 'clic_marche' %}" class="btn-agro">Accéder au Marché</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card role-card h-100 shadow">
+                    <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?q=80&w=600&q=80" class="card-img-header" alt="Transport">
+                    <div class="card-body p-4 pt-0 text-center">
+                        <div class="icon-circle"><i class="fas fa-truck-fast"></i></div>
+                        <h3 class="fw-bold mb-3">Transporteur</h3>
+                        <p class="text-muted small mb-4">Garantissez l'intégrité des flux agroalimentaires.</p>
+                        
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dashboard_transporteur' %}" class="btn-agro">Piloter la Logistique</a>
+                        {% else %}
+                            <a href="{% url 'clic_transport' %}" class="btn-agro">Piloter la Logistique</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="footer-premium text-center mt-5">
+        <div class="container">
+            <p class="mb-0 small">© 2026 SANI-AGRO | MIAGE - TechnoLAB-ISTA Bamako</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
