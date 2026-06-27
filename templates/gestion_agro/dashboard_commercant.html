@@ -1,206 +1,348 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Espace Commerçant | Système Agro</title>
-    <style>
-        /* Conservation stricte de tes styles originaux */
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; display: flex; }
-        .sidebar { width: 260px; background: #1a237e; color: white; height: 100vh; position: fixed; padding: 20px; }
-        .content { margin-left: 300px; padding: 40px; width: 100%; }
-        .card-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-item { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .table-box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; color: #7f8c8d; border-bottom: 2px solid #eee; }
-        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
-        .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8em; }
-        .btn-tel { color: #00acc1; text-decoration: none; font-weight: bold; font-size: 0.9em; display: inline-block; margin-top: 5px; }
-        .btn-tel:hover { text-decoration: underline; }
-        
-        .logistique-box { padding: 12px; border-radius: 10px; line-height: 1.5; border-left: 5px solid; }
-        .status-waiting { background: #efebe9; border-color: #8d6e63; } /* Nouveau : Style pour attente de chargement */
-        .status-shipping { background: #fff3e0; border-color: #ff7043; } 
-        .status-delivered { background: #e0f2f1; border-color: #26a69a; } 
-        .driver-name { font-weight: bold; color: #333; font-size: 0.9em; }
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+{% load static %}
 
-        .btn-confirm {
-            background: #ff7043;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.75em;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-confirm:hover { background: #e64a19; }
+<style>
+    :root {
+        --primary: #1a237e;
+        --primary-light: #3f51b5;
+        --accent: #ff9800;
+        --bg-body: #f4f7f6;
+        --white: #ffffff;
+    }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); margin: 0; padding: 25px; color: #333; }
+    .container { max-width: 1300px; margin: auto; background: var(--white); padding: 25px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.4); }
+    .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; }
+    .profile-info { display: flex; align-items: center; gap: 20px; }
+    .profile-img { width: 80px; height: 80px; border-radius: 22px; display:flex; align-items:center; justify-content:center; font-size:35px; background:#e8eaf6; color:#1a237e; }
+    h1 { color: var(--primary); margin: 0; font-size: 2em; font-weight: 800; letter-spacing: -1px; }
+    .score-pill { background: #e8eaf6; color: var(--primary); padding: 5px 15px; border-radius: 30px; font-size: 12px; font-weight: 800; border: 1.5px solid var(--primary); }
+    .btn-add { background: linear-gradient(135deg, #3f51b5, #1a237e); color: white; padding: 16px 28px; text-decoration: none; border-radius: 18px; font-weight: bold; transition: 0.3s; box-shadow: 0 8px 20px rgba(26, 35, 126, 0.25); display: inline-flex; align-items: center; gap: 8px; }
+    .btn-add:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(26, 35, 126, 0.35); }
+    .card-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-item { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .stat-item small { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+    .stat-item h2 { margin: 5px 0; font-size: 1.3em; }
+    .table-box { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 25px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px; color: #7f8c8d; border-bottom: 2px solid #eee; font-size: 0.8em; text-transform: uppercase; }
+    td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    .badge { padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.8em; display: inline-block; margin: 2px; }
+    .badge-success { background: #e8f5e9; color: #2e7d32; }
+    .badge-warning { background: #fff3e0; color: #e65100; }
+    .badge-info { background: #e3f2fd; color: #0d47a1; }
+    .badge-danger { background: #ffebee; color: #b71c1c; }
+    .logistique-box { padding: 12px; border-radius: 10px; line-height: 1.5; border-left: 5px solid; margin-top: 5px; }
+    .status-waiting { background: #efebe9; border-color: #8d6e63; }
+    .status-shipping { background: #fff3e0; border-color: #ff7043; }
+    .status-delivered { background: #e0f2f1; border-color: #26a69a; }
+    .driver-name { font-weight: bold; color: #333; font-size: 0.9em; }
+    .btn-tel { color: #00acc1; text-decoration: none; font-weight: bold; font-size: 0.9em; display: inline-block; margin-top: 5px; }
+    .btn-suivi { display: inline-block; background: #1a237e; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin: 5px 0; }
+    .btn-confirm { background: #ff7043; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 0.75em; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .btn-renouveler { display: inline-block; background: #2e7d32; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-top: 5px; }
+    .btn-noter { display: inline-block; background: #ff9800; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; margin-top: 5px; cursor: pointer; border: none; }
+    .btn-producteur { display: inline-block; background: #25d366; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 0.7em; margin-top: 5px; }
+    .btn-favoris { background: none; border: none; font-size: 1.2em; cursor: pointer; margin-left: 8px; }
+    .btn-transporteur { display: inline-block; background: #1565c0; color: white; text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 8px; }
+    .btn-accept { background: #2e7d32; color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 12px; display: inline-block; }
+    .btn-refuse { background: #d32f2f; color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 12px; display: inline-block; }
+    .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+    .tab { text-decoration: none; padding: 8px 18px; border-radius: 20px; font-size: 0.85em; font-weight: bold; background: #eee; color: #666; transition: 0.3s; }
+    .tab.active { background: #1a237e; color: white; }
+    .filter-select { padding: 8px 15px; border-radius: 20px; border: 2px solid #ddd; font-size: 0.85em; font-weight: 600; }
+    .meteo-widget { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); padding: 20px; border-radius: 20px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; }
+    .confiance-pill { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold; margin-left: 5px; }
+    .alerte-retard { animation: blink 1s infinite; }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        .btn-suivi {
-            display: inline-block;
-            background: #1a237e;
-            color: white;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            margin: 5px 0;
-        }
+    /* MENU LATÉRAL */
+    .dashboard-layout { display: flex; gap: 20px; align-items: stretch; }
+    .sidebar { width: 230px; min-width: 230px; background: linear-gradient(180deg, #e8eaf6 0%, #c5cae9 100%); border-radius: 15px; padding: 15px; box-shadow: 0 5px 15px rgba(26,35,126,0.1); border: 1px solid #9fa8da; }
+    .sidebar-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 15px; margin-bottom: 6px; border: none; background: white; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.3s; color: #555; text-align: left; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .sidebar-btn:hover { background: var(--primary); color: white; transform: translateX(5px); }
+    .sidebar-btn.active { background: var(--primary); color: white; box-shadow: 0 3px 10px rgba(26,35,126,0.3); }
+    .main-content { flex: 1; min-width: 0; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-        /* Style pour les onglets de filtrage */
-        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { text-decoration: none; padding: 8px 18px; border-radius: 20px; font-size: 0.85em; font-weight: bold; background: #eee; color: #666; transition: 0.3s; }
-        .tab.active { background: #1a237e; color: white; }
-    </style>
-</head>
-<body>
+    /* Cloche de notifications */
+    .notification-icon {
+        position: relative;
+        cursor: pointer;
+        margin-left: 10px;
+        font-size: 1.4em;
+    }
+    .notification-badge {
+        position: absolute;
+        top: -8px;
+        right: -10px;
+        background: #d32f2f;
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 11px;
+        font-weight: bold;
+        line-height: 1;
+    }
+</style>
 
-    <div class="sidebar">
-        <h2 style="color: #ffca28;">Agro-Mali</h2>
-        <hr>
-        <p>📊 <strong>Mon Dashboard</strong></p>
-        <a href="/" style="color: white; text-decoration: none; display: block; margin: 20px 0;">🛒 Retour au Marché</a>
-        <a href="/logout/" style="color: #ff8a65; text-decoration: none;">🚪 Déconnexion</a>
-    </div>
+<form id="hidden-logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">{% csrf_token %}</form>
 
-    <div class="content">
-        <h1>Tableau de Bord Commerçant</h1>
-        
-        <div class="card-stats">
-            <div class="stat-item" style="border-left: 8px solid #1a237e;">
-                <small>Cautions Payées</small>
-                <h2 style="margin: 5px 0;">{{ total_cautions|floatformat:0 }} FCFA</h2>
-            </div>
-            <div class="stat-item" style="border-left: 8px solid #fb8c00;">
-                <small>Commandes en attente</small>
-                <h2 style="margin: 5px 0;">{{ nb_attente }}</h2>
-            </div>
-            <div class="stat-item" style="border-left: 8px solid #00acc1;">
-                <small>Volume Réservé</small>
-                <h2 style="margin: 5px 0;">{{ total_tonnage }} KG</h2>
-            </div>
-            <div class="stat-item" style="border-left: 8px solid #e91e63;">
-                <small>Reste à Payer (80%)</small> 
-                <h2 style="margin: 5px 0;">{{ total_reste_a_payer|floatformat:0 }} FCFA</h2>
+<div class="container">
+
+    {% if not commercant.est_verifie %}
+    {% if commercant.piece_identite %}
+        <div style="background:#fff3cd;color:#856404;padding:15px;border-radius:10px;margin-bottom:20px;text-align:center;border:1px solid #ffeeba;">⏳ Votre pièce d'identité est en cours de vérification par l'admin.</div>
+    {% else %}
+        <div style="background:#fff3cd;color:#856404;padding:15px;border-radius:10px;margin-bottom:20px;text-align:center;border:1px solid #ffeeba;">⚠️ Votre compte n'est pas encore vérifié. <a href="{% url 'verifier_identite' %}" style="font-weight:bold;text-decoration:underline;color:#856404;">Cliquez ici pour envoyer votre pièce d'identité.</a></div>
+    {% endif %}
+{% endif %}
+
+    <div class="header-flex">
+        <div class="profile-info">
+            <div class="profile-img">🛒</div>
+            <div>
+                <h1>SANI-AGRO <span style="font-size:20px;">🇲🇱</span></h1>
+                <div style="margin-top:5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="color:#666;">Commerçant : <strong style="color:#333;">{{ commercant.nom }} {{ commercant.prenom }}</strong></span>
+                    <span class="score-pill">{{ commercant.ville_marche }}</span>
+                    <!-- Cloche de notifications -->
+                    <span class="notification-icon" onclick="openTab(event, 'notifications')">
+                        🔔
+                        {% if nb_notifications > 0 %}
+                        <span class="notification-badge">{{ nb_notifications }}</span>
+                        {% endif %}
+                    </span>
+                </div>
             </div>
         </div>
+        <div style="display:flex;gap:15px;"><a href="{% url 'catalogue_produits' %}" class="btn-add">🛍️ Catalogue</a><a href="{% url 'dashboard_commercant' %}" class="btn-add" style="background:#2e7d32;">🔄 Actualiser</a></div>
+    </div>
 
-        <div class="table-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3>📦 Historique et Suivi des Livraisons</h3>
-                
-                <div class="filter-tabs">
-                    <a href="?statut=tous" class="tab {% if not statut_actuel or statut_actuel == 'tous' %}active{% endif %}">
-                        📁 Tous
-                    </a>
-                    <a href="?statut=en_cours" class="tab {% if statut_actuel == 'en_cours' %}active{% endif %}">
-                        🚚 En cours
-                    </a>
-                    <a href="?statut=termine" class="tab {% if statut_actuel == 'termine' %}active{% endif %}">
-                        ✅ Terminés
-                    </a>
+    {% if nb_retards > 0 %}<div style="background:#ffebee;color:#b71c1c;padding:12px 20px;border-radius:12px;border-left:6px solid #d32f2f;margin-bottom:15px;font-weight:600;">⚠️ <strong>{{ nb_retards }} livraison(s) en retard</strong></div>{% endif %}
+
+    <div class="card-stats">
+        <div class="stat-item" style="border-left:8px solid #1a237e;"><small>Cautions Payées</small><h2>{{ total_cautions|floatformat:0 }} FCFA</h2></div>
+        <div class="stat-item" style="border-left:8px solid #fb8c00;"><small>Commandes en attente</small><h2>{{ nb_attente }}</h2></div>
+        <div class="stat-item" style="border-left:8px solid #00acc1;"><small>Volume Réservé</small><h2>{{ total_tonnage }} KG</h2></div>
+        <div class="stat-item" style="border-left:8px solid #e91e63;"><small>Reste à Payer (80%)</small><h2>{{ total_reste_a_payer|floatformat:0 }} FCFA</h2></div>
+        {% if panier_moyen %}<div class="stat-item" style="border-left:8px solid #7b1fa2;"><small>Panier moyen</small><h2>{{ panier_moyen|floatformat:0 }} FCFA</h2></div>{% endif %}
+    </div>
+
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <button class="sidebar-btn active" onclick="openTab(event, 'commandes')">📋 Mes commandes</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'comparaison')">📊 Comparer</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'favoris')">⭐ Favoris</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'alertes-produits')">🔔 Alertes</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'demandes')">📢 Demandes</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'transactions')">💰 Transactions</button>
+            <!-- NOTIFICATIONS -->
+            <button class="sidebar-btn" onclick="openTab(event, 'notifications')">
+                🔔 Notifications
+                {% if nb_notifications > 0 %}<span class="badge badge-danger" style="margin-left:5px;">{{ nb_notifications }}</span>{% endif %}
+            </button>
+            <button class="sidebar-btn" onclick="openTab(event, 'alertes')">⚠️ Infos</button>
+            <a href="{% url 'calendrier' %}" class="sidebar-btn" style="text-decoration:none;">📅 Calendrier</a>
+        </div>
+        <div class="main-content">
+
+            <!-- ONGLET 1 : MES COMMANDES -->
+            <div id="commandes" class="tab-content active">
+                <!-- ... (tout le contenu existant des commandes, inchangé) ... -->
+                <div class="table-box"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;"><h3 style="margin:0;color:#1a237e;">📦 Historique et Suivi des Livraisons</h3><div class="filter-tabs"><select class="filter-select" id="filtreProduit" onchange="filtrerParProduit()"><option value="tous">Tous les produits</option>{% for produit in liste_produits %}<option value="{{ produit }}">{{ produit }}</option>{% endfor %}</select><a href="?statut=tous" class="tab {% if not statut_actuel or statut_actuel == 'tous' %}active{% endif %}">📁 Tous</a><a href="?statut=en_cours" class="tab {% if statut_actuel == 'en_cours' %}active{% endif %}">🚚 En cours</a><a href="?statut=termine" class="tab {% if statut_actuel == 'termine' %}active{% endif %}">✅ Terminés</a></div></div>
+                <table><thead><tr><th>Produit & Échéance</th><th>Quantité</th><th>Caution (20%)</th><th>Reste (80%)</th><th>Statut Paiement</th><th>🚚 Suivi Logistique</th></tr></thead><tbody>{% for res in mes_achats %}<tr class="ligne-commande" data-produit="{{ res.produit.nom }}"><td><strong style="font-size:1.1em;color:#1a237e;">{{ res.produit.nom }}</strong><button class="btn-favoris" onclick="toggleFavori('{{ res.produit.producteur.nom_complet|escapejs }}','{{ res.produit.nom|escapejs }}','{{ res.produit.producteur.telephone }}')">⭐</button><br><small style="color:#666;">Vendeur : {{ res.nom_du_producteur }}{% if res.produit.producteur.score_confiance %}<span class="confiance-pill">🛡️ {{ res.produit.producteur.score_confiance }}%</span>{% endif %}{% if res.produit.producteur.telephone %}<br><a href="tel:{{ res.produit.producteur.telephone }}" class="btn-producteur">📞 Appeler</a> <a href="https://wa.me/223{{ res.produit.producteur.telephone }}" target="_blank" class="btn-producteur">💬 WhatsApp</a>{% endif %}</small><br><span style="font-size:11px;background:#ffebee;color:#c62828;padding:2px 6px;border-radius:4px;font-weight:bold;">⏳ Limite fraîcheur : {{ res.produit.date_peremption_prevue|date:"d/m/Y" }}</span></td><td><strong>{{ res.quantite_voulue }}</strong> kg</td><td style="color:#d32f2f;font-weight:bold;">{{ res.caution_20 }} FCFA</td><td style="color:#1a237e;font-weight:bold;">{{ res.reste_a_payer|floatformat:0 }} FCFA</td>
+                <!-- ========== COLONNE STATUT PAIEMENT AVEC BOUTON RESTE À PAYER ========== -->
+                <td>
+                    {% if res.statut_caution == 'PAYE' or res.statut_caution == 'LIBEREE' or res.statut_caution == 'BLOQUEE' %}
+                        <span class="badge badge-success">✅ VALIDÉ</span>
+                        <br>
+                        <a href="{% url 'generer_recu' res.id %}" target="_blank" 
+                           style="display: inline-block; margin-top: 8px; text-decoration: none; color: #1a237e; font-size: 0.75em; font-weight: bold; border: 1px solid #1a237e; padding: 4px 8px; border-radius: 4px; background: #f0f2ff;">
+                           📄 Reçu de Paiement
+                        </a>
+                        {% if res.statut_reste == 'NON_PAYE' and res.reste_a_payer > 0 %}
+                            <br>
+                            <a href="{% url 'declarer_reste_paye' res.id %}" class="btn-noter" style="background:#1a237e; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:0.75em; margin-top:5px; display:inline-block;" onclick="return confirm('Confirmer le paiement du reste de {{ res.reste_a_payer|floatformat:0 }} FCFA ?')">💰 Payer le reste</a>
+                        {% elif res.statut_reste == 'DECLARE' %}
+                            <br><span class="badge badge-info">🕒 Reste déclaré</span>
+                        {% elif res.statut_reste == 'CONFIRME' %}
+                            <br><span class="badge badge-success">✅ Reste confirmé</span>
+                        {% endif %}
+                    {% elif res.statut_caution == 'ATTENTE_VALIDATION' %}
+                        <span class="badge badge-warning">🕒 En attente de validation</span>
+                        <br>
+                        <a href="{% url 'modifier_reservation' res.id %}" class="btn-noter" style="background:#0288d1; margin-top:5px; display:inline-block; text-decoration:none; padding:4px 8px; border-radius:4px; color:white; font-size:0.75em;">✏️ Modifier</a>
+                        <a href="{% url 'annuler_reservation' res.id %}" class="btn-noter" style="background:#d32f2f; margin-top:5px; display:inline-block;" onclick="return confirm('Confirmer l\'annulation ? Le stock sera remis à jour et votre caution restituée.')">❌ Annuler</a>
+                    {% elif res.statut_caution == 'BLOQUEE' %}
+                        <span class="badge" style="background:#e3f2fd; color:#0d47a1;">🔒 Caution bloquée</span>
+                        <br>
+                        <small style="color:#666;">Transport à choisir</small>
+                    {% else %}
+                        <span class="badge badge-warning">🕒 ATTENTE</span>
+                        <br>
+                        <a href="{% url 'modifier_reservation' res.id %}" class="btn-noter" style="background:#0288d1; margin-top:5px; display:inline-block; text-decoration:none; padding:4px 8px; border-radius:4px; color:white; font-size:0.75em;">✏️ Modifier</a>
+                        <a href="{% url 'annuler_reservation' res.id %}" class="btn-noter" style="background:#d32f2f; margin-top:5px; display:inline-block;" onclick="return confirm('Confirmer l\'annulation ? Le stock sera remis à jour.')">❌ Annuler</a>
+                    {% endif %}
+                </td>
+                <!-- ========== COLONNE SUIVI LOGISTIQUE (inchangée) ========== -->
+                <td>{% if res.livraison %}{% if res.livraison.statut == 'LIVRE' %}<div class="logistique-box status-delivered"><strong style="color:#00695c;display:block;font-size:0.85em;">✅ MARCHANDISE REÇUE</strong><span class="driver-name">Livreur : {{ res.livraison.transporteur.nom }}</span><br><small>Plaque : {{ res.livraison.transporteur.vehicule }}</small><br><a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Voir le trajet</a><br><a href="{% url 'reserver_produit' res.produit.id %}" class="btn-renouveler">🔄 Renouveler</a><br><button onclick="noterTransporteur({{ res.livraison.transporteur.id }})" class="btn-noter">⭐ Noter le transporteur</button><br><a href="{% url 'declarer_litige' res.livraison.id %}" class="btn-noter" style="background:#d32f2f;">⚠️ Déclarer un litige</a></div>{% elif res.livraison.statut == 'proposition' or res.livraison.statut == 'en_attente' %}<div class="logistique-box status-waiting"><strong style="color:#4e342e;display:block;font-size:0.85em;">🚜 TRANSPORTEUR INTÉRESSÉ</strong><span class="driver-name">{{ res.livraison.transporteur.nom }}</span><br><small>Véhicule : {{ res.livraison.transporteur.vehicule }}</small>{% if res.livraison.tarif_propose %}<br><strong style="color:#1a237e;">Tarif proposé : {{ res.livraison.tarif_propose }} FCFA</strong>{% endif %}<br><a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">📞 Appeler</a><a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Voir le trajet</a><div style="margin-top:8px;"><a href="{% url 'accepter_proposition' res.livraison.id %}" class="btn-accept">✅ Accepter</a><a href="{% url 'refuser_proposition' res.livraison.id %}" class="btn-refuse">❌ Refuser</a></div></div>{% elif res.livraison.statut == 'accepte' %}<div class="logistique-box status-waiting"><strong style="color:#2e7d32;display:block;font-size:0.85em;">✅ PROPOSITION ACCEPTÉE</strong><span class="driver-name">{{ res.livraison.transporteur.nom }}</span><br><small>Véhicule : {{ res.livraison.transporteur.vehicule }}</small>{% if res.livraison.tarif_propose %}<br><strong>Tarif : {{ res.livraison.tarif_propose }} FCFA</strong>{% endif %}<br><a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">📞 Appeler</a></div>{% elif res.livraison.statut == 'refuse' %}<div class="logistique-box" style="background:#ffebee;border-color:#d32f2f;"><strong style="color:#d32f2f;display:block;font-size:0.85em;">❌ PROPOSITION REFUSÉE</strong><span class="driver-name">{{ res.livraison.transporteur.nom }}</span></div>{% else %}<div class="logistique-box status-shipping"><strong style="color:#d84315;display:block;font-size:0.85em;">🚚 TRANSPORT EN COURS (CHARGÉ){% if res.livraison.en_retard %}<span class="alerte-retard">⚠️ RETARD</span>{% endif %}</strong><span class="driver-name">Chauffeur : {{ res.livraison.transporteur.nom }}</span><br><span style="font-size:0.8em;font-weight:bold;">🆔 Véhicule : {{ res.livraison.transporteur.vehicule }}</span><br><a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Suivre mon camion</a><br><form action="{% url 'confirmer_reception' res.livraison.id %}" method="POST" style="display:inline;">{% csrf_token %}<button type="submit" class="btn-confirm">Confirmer la réception</button></form><br><a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">📞 Appeler : {{ res.livraison.transporteur.telephone }}</a></div>{% endif %}{% else %}{% if res.statut_caution == 'BLOQUEE' or res.statut_caution == 'PAYE' %}<a href="{% url 'choisir_transporteur' res.id %}" class="btn-transporteur">🚛 Choisir un transporteur</a>{% elif res.statut_caution == 'ATTENTE_VALIDATION' %}<span style="font-size:0.85em;color:#7f8c8d;font-style:italic;">⏳ Caution en cours de validation</span>{% elif res.statut_caution == 'PAYE' %}<span style="font-size:0.85em;color:#7f8c8d;font-style:italic;">🔍 Recherche chauffeur...</span>{% else %}<span style="font-size:0.85em;color:#ccc;">Attente validation producteur</span>{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">Aucun achat enregistré.</td></tr>{% endfor %}</tbody></table></div>{% if total_commandes > 5 %}<div style="text-align:center;margin:20px 0;"><a href="#" class="btn-add" style="background:#2e7d32;" onclick="alert('Fonctionnalité à venir')">📥 Télécharger le récapitulatif (PDF)</a></div>{% endif %}
+            </div>
+
+            <!-- ONGLET 2 : COMPARAISON -->
+            <div id="comparaison" class="tab-content">
+                <div class="table-box"><h3 style="color:#1a237e;margin-top:0;">📊 Comparer les producteurs par produit</h3>{% if comparaison_producteurs %}{% for produit, vendeurs in comparaison_producteurs.items %}<h4 style="color:#1a237e;margin-top:20px;">{{ produit }}</h4><table><thead><tr><th>Producteur</th><th>Prix unitaire (FCFA)</th><th>Score de confiance</th><th>Contact</th></tr></thead><tbody>{% for v in vendeurs %}<tr><td>{{ v.nom }}</td><td>{{ v.prix }}</td><td><span class="confiance-pill">🛡️ {{ v.score }}%</span></td><td>{% if v.telephone %}<a href="tel:{{ v.telephone }}" class="btn-tel">📞 Appeler</a>{% endif %}</td></tr>{% endfor %}</tbody></table>{% endfor %}{% else %}<p style="text-align:center;color:#999;padding:40px;">Aucune commande enregistrée pour comparer.</p>{% endif %}</div>
+                <div class="table-box"><h3 style="color:#1a237e;margin-top:0;">📈 Historique des prix (6 derniers mois)</h3>{% if historique_prix %}{% for produit, mois in historique_prix.items %}<h4 style="color:#1a237e;margin-top:20px;">{{ produit }}</h4><table><thead><tr><th>Période</th><th>Prix moyen (FCFA)</th></tr></thead><tbody>{% for periode, prix_moyen in mois %}<tr><td>{{ periode }}</td><td>{{ prix_moyen|floatformat:0 }}</td></tr>{% endfor %}</tbody></table>{% endfor %}{% else %}<p style="text-align:center;color:#999;padding:40px;">Pas assez de données pour afficher l'historique.</p>{% endif %}</div>
+            </div>
+
+            <!-- ONGLET 3 : FAVORIS -->
+            <div id="favoris" class="tab-content"><div class="table-box"><h3 style="color:#1a237e;margin-top:0;">⭐ Mes producteurs favoris</h3><table><thead><tr><th>Producteur</th><th>Produit</th><th>Téléphone</th><th>Action</th></tr></thead><tbody id="favoris-liste"><tr><td colspan="4" style="text-align:center;padding:40px;color:#999;">Chargement des favoris...</td></tr></tbody></table></div></div>
+
+            <!-- ONGLET 4 : ALERTES PRODUITS -->
+            <div id="alertes-produits" class="tab-content"><div class="table-box"><h3 style="color:#1a237e;margin-top:0;">🔔 Mes critères d'alerte</h3><div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;"><input type="text" id="critere-produit" placeholder="Nom du produit (ex: mangue)" class="filter-select" style="flex:1;"><select id="critere-zone" class="filter-select" style="flex:1;"><option value="">Toutes les zones</option><option value="SIKASSO">Sikasso</option><option value="SEGOU">Ségou</option><option value="BAGUINEDA">Baguinéda</option></select><input type="number" id="critere-prix" placeholder="Prix max (FCFA)" class="filter-select" style="flex:1;"><button onclick="sauvegarderCriteres()" class="btn-add" style="padding:10px 20px;">💾 Sauvegarder</button></div><div id="criteres-actuels" style="margin-bottom:15px;color:#555;"></div><button onclick="verifierAlertes()" class="btn-add" style="background:#2e7d32;">🔍 Vérifier maintenant</button><div id="resultats-alertes" style="margin-top:20px;"></div></div></div>
+
+            <!-- ONGLET 5 : MES DEMANDES -->
+            <div id="demandes" class="tab-content"><div class="table-box" style="margin-bottom:25px;"><h3 style="color:#1a237e;margin-top:0;">📝 Publier une nouvelle demande</h3><form method="POST" action="{% url 'publier_demande_marche' %}">{% csrf_token %}<div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;"><input type="text" name="produit" placeholder="Produit recherché (ex: Maïs)" required class="filter-select" style="flex:1;"><input type="number" name="quantite" placeholder="Quantité (kg)" required class="filter-select" style="flex:1;"><input type="text" name="marche" placeholder="Marché (ex: Bamako)" required class="filter-select" style="flex:1;"><input type="date" name="date_besoin" required class="filter-select" style="flex:1;"><button type="submit" class="btn-add" style="padding:10px 20px;">📤 Publier</button></div></form></div><div class="table-box"><h3 style="color:#1a237e;margin-top:0;">📋 Mes demandes</h3>{% if mes_demandes %}<table><thead><tr><th>Produit</th><th>Quantité</th><th>Marché</th><th>Date souhaitée</th><th>Statut</th><th>Action</th></tr></thead><tbody>{% for demande in mes_demandes %}<tr><td><strong>{{ demande.produit }}</strong></td><td>{{ demande.quantite }} kg</td><td>{{ demande.marche }}</td><td>{{ demande.date_besoin|date:"d/m/Y" }}</td><td>{% if demande.statut == 'OUVERTE' %}<span class="badge badge-warning">Ouverte</span>{% elif demande.statut == 'ATTRIBUEE' %}<span class="badge badge-info">Attribuée</span>{% else %}<span class="badge badge-success">Satisfaite</span>{% endif %}</td><td>{% if demande.statut == 'ATTRIBUEE' %}<a href="{% url 'satisfaire_demande' demande.id %}" class="badge badge-success" style="text-decoration:none;">✔️ Satisfaite</a>{% endif %}</td></tr>{% endfor %}</tbody></table>{% else %}<p style="text-align:center;color:#999;padding:40px;">Vous n'avez encore publié aucune demande.</p>{% endif %}</div></div>
+
+            <!-- ================= NOUVEL ONGLET : TRANSACTIONS avec PDF ================= -->
+            <div id="transactions" class="tab-content">
+                <div class="table-box">
+                    <h3 style="color:#1a237e;margin-top:0;">💰 Mon historique financier</h3>
+                    {% if transactions %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Réservation n°</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tx in transactions %}
+                            <tr>
+                                <td>{{ tx.date_creation|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if tx.type_transaction == 'CAUTION' %}
+                                        <span class="badge badge-warning">🔒 Caution</span>
+                                    {% elif tx.type_transaction == 'REMBOURSEMENT' %}
+                                        <span class="badge badge-info">↩️ Remboursement</span>
+                                    {% elif tx.type_transaction == 'Paiement' %}
+                                        <span class="badge badge-success">✅ Paiement producteur</span>
+                                    {% else %}
+                                        <span class="badge">{{ tx.type_transaction }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>#{{ tx.reservation.id }}</td>
+                                <td><strong>{{ tx.montant }} FCFA</strong></td>
+                                <td>
+                                    {% if tx.statut == 'EN_ATTENTE' %}
+                                        <span class="badge badge-warning">🕒 En attente</span>
+                                    {% elif tx.statut == 'EFFECTUE' %}
+                                        <span class="badge badge-success">✅ Effectué</span>
+                                    {% else %}
+                                        <span class="badge">{{ tx.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'telecharger_recu_transaction' tx.id %}" 
+                                       class="badge badge-info" style="text-decoration:none;" target="_blank">
+                                        📥 PDF
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="text-align:center;color:#999;padding:40px;">Aucune transaction enregistrée pour le moment.</p>
+                    {% endif %}
                 </div>
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>Produit & Échéance</th> <th>Quantité</th>
-                        <th>Caution (20%)</th>
-                        <th>Reste (80%)</th> 
-                        <th>Statut Paiement</th>
-                        <th>🚚 Suivi Logistique</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for res in mes_achats %}
-                    <tr>
-                        <td>
-                            <strong style="font-size: 1.1em; color: #1a237e;">{{ res.produit.nom }}</strong><br>
-                            <small style="color: #666; display: block; margin-bottom: 4px;">Vendeur : {{ res.nom_du_producteur }}</small>
-                            <span style="font-size: 11px; background: #ffebee; color: #c62828; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
-                                ⏳ Limite fraîcheur : {{ res.produit.date_peremption_prevue|date:"d/m/Y" }}
-                            </span>
-                        </td>
-                        <td><strong>{{ res.quantite_voulue }}</strong> kg</td>
-                        <td style="color: #d32f2f; font-weight: bold;">{{ res.caution_20 }} FCFA</td>
-                        <td style="color: #1a237e; font-weight: bold;">{{ res.reste_a_payer|floatformat:0 }} FCFA</td>
-                        
-                        <td>
-                            {% if res.statut_caution == 'PAYE' %}
-                                <span class="badge" style="background:#e8f5e9; color:#2e7d32;">✅ VALIDÉ</span>
-                                <br>
-                                <a href="{% url 'generer_recu' res.id %}" target="_blank" 
-                                   style="display: inline-block; margin-top: 8px; text-decoration: none; color: #1a237e; font-size: 0.75em; font-weight: bold; border: 1px solid #1a237e; padding: 4px 8px; border-radius: 4px; background: #f0f2ff;">
-                                   📄 Reçu de Paiement
-                                </a>
-                            {% elif res.statut_caution == 'NON_PAYE' %}
-                                <span class="badge" style="background:#fff3e0; color:#e65100;">🕒 ATTENTE</span>
-                            {% else %}
-                                <span class="badge" style="background:#eee; color:#666;">{{ res.statut_caution }}</span>
-                            {% endif %}
-                        </td>
-                        
-                        <td>
-                            {% if res.livraison %}
-                                {% if res.livraison.statut == 'LIVRE' %}
-                                    <div class="logistique-box status-delivered">
-                                        <strong style="color: #00695c; display: block; font-size: 0.85em;">✅ MARCHANDISE REÇUE</strong>
-                                        <span class="driver-name">Livreur : {{ res.livraison.transporteur.nom }}</span><br>
-                                        <small>Plaque : {{ res.livraison.transporteur.vehicule }}</small>
-                                        <br>
-                                        <a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Voir le trajet</a>
-                                    </div>
-                                {% elif res.livraison.statut == 'en_attente' %}
-                                    <div class="logistique-box status-waiting">
-                                        <strong style="color: #4e342e; display: block; font-size: 0.85em;">🚜 CHAUFFEUR EN ROUTE VERS LE CHAMP</strong>
-                                        <span class="driver-name">Chauffeur : {{ res.livraison.transporteur.nom }}</span><br>
-                                        <small>Véhicule : {{ res.livraison.transporteur.vehicule }}</small><br>
-                                        <a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">
-                                            📞 Appeler Chauffeur
-                                        </a>
-                                    </div>
-                                {% else %}
-                                    <div class="logistique-box status-shipping">
-                                        <strong style="color: #d84315; display: block; font-size: 0.85em;">🚚 TRANSPORT EN COURS (CHARGÉ)</strong>
-                                        <span class="driver-name">Chauffeur : {{ res.livraison.transporteur.nom }}</span><br>
-                                        <span style="font-size: 0.8em; font-weight: bold;">🆔 Véhicule : {{ res.livraison.transporteur.vehicule }}</span><br>
-                                        
-                                        <a href="{% url 'suivre_livraison' res.livraison.id %}" class="btn-suivi">📍 Suivre mon camion</a>
-                                        <br>
-                                        
-                                        <form action="{% url 'confirmer_reception' res.livraison.id %}" method="POST" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn-confirm">
-                                                Confirmer la réception
-                                            </button>
-                                        </form>
-                                        <br>
-                                        
-                                        <a href="tel:{{ res.livraison.transporteur.telephone }}" class="btn-tel">
-                                            📞 Appeler : {{ res.livraison.transporteur.telephone }}
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            {% else %}
-                                {% if res.statut_caution == 'PAYE' %}
-                                    <span style="font-size: 0.85em; color: #7f8c8d; font-style: italic;">
-                                        🔍 Recherche chauffeur...
-                                    </span>
-                                {% else %}
-                                    <span style="font-size: 0.85em; color: #ccc;">Attente validation producteur</span>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">Aucun achat enregistré.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <!-- ONGLET NOTIFICATIONS -->
+            <div id="notifications" class="tab-content">
+                <div class="table-box">
+                    <h3 style="color:#1a237e;margin-top:0;">🔔 Notifications récentes</h3>
+                    {% if notifications %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Titre</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notif in notifications %}
+                            <tr>
+                                <td>{{ notif.date_creation|date:"d/m/Y H:i" }}</td>
+                                <td><strong>{{ notif.titre }}</strong></td>
+                                <td>{{ notif.message }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="text-align:center;color:#999;padding:40px;">Aucune notification pour le moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ONGLET 7 : INFOS UTILES -->
+            <div id="alertes" class="tab-content">{% if alertes_route %}<div class="table-box" style="margin-bottom:25px;"><h3 style="color:#b71c1c;margin-top:0;">⚠️ Alertes routières</h3><table><thead><tr><th>Type</th><th>Axe routier</th><th>Mise à jour</th></tr></thead><tbody>{% for alerte in alertes_route %}<tr><td><span class="badge {% if alerte.type_incident == 'TENSION' %}badge-danger{% else %}badge-warning{% endif %}">{{ alerte.type_incident }}</span></td><td>{{ alerte.axe_routier }}</td><td>{{ alerte.date_publication|date:"d/m/Y H:i" }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}<div class="table-box"><h3 style="color:#1a237e;margin-top:0;">🌦️ Météo du jour</h3><div class="meteo-widget" id="meteo-widget"><span id="meteo-icon">⛅</span><div><strong id="meteo-ville">Bamako</strong> : <span id="meteo-temp">--°C</span>, <span id="meteo-desc">chargement...</span></div></div></div></div>
+
         </div>
     </div>
 
-</body>
-</html>
+</div>
+
+<script>
+    function openTab(evt, tabName) { var tc=document.getElementsByClassName("tab-content"); for(var i=0;i<tc.length;i++) tc[i].classList.remove("active"); var tl=document.getElementsByClassName("sidebar-btn"); for(var i=0;i<tl.length;i++) tl[i].classList.remove("active"); document.getElementById(tabName).classList.add("active"); evt.currentTarget.classList.add("active"); if(tabName==='favoris') afficherFavoris(); }
+    function filtrerParProduit() { const p=document.getElementById('filtreProduit').value; document.querySelectorAll('.ligne-commande').forEach(l=>{ l.style.display=(p==='tous'||l.dataset.produit===p)?'':'none'; }); }
+    function noterTransporteur(id) { const n=prompt("Note de 1 à 5 :","5"); if(n&&parseInt(n)>=1&&parseInt(n)<=5){ fetch('/noter-transporteur/'+id+'/',{method:'POST',headers:{'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value,'Content-Type':'application/x-www-form-urlencoded'},body:'note='+parseInt(n)}).then(r=>{ if(r.ok) alert("Merci !"); else alert("Erreur."); }); } }
+    function getFavoris() { const f=localStorage.getItem('sani_favoris'); return f?JSON.parse(f):[]; }
+    function saveFavoris(f) { localStorage.setItem('sani_favoris',JSON.stringify(f)); }
+    function toggleFavori(nom,prod,tel) { let f=getFavoris(); const i=f.findIndex(x=>x.nom===nom&&x.produit===prod); if(i>=0) f.splice(i,1); else f.push({nom:nom,produit:prod,telephone:tel}); saveFavoris(f); alert(i>=0?'Retiré':'Ajouté'); }
+    function afficherFavoris() { const t=document.getElementById('favoris-liste'),f=getFavoris(); t.innerHTML=f.length===0?'<tr><td colspan="4" style="text-align:center;padding:40px;">Aucun favori.</td></tr>':f.map(x=>`<tr><td>${x.nom}</td><td>${x.produit}</td><td>${x.telephone||'—'}</td><td><button class="btn-noter" onclick="toggleFavori('${x.nom.replace(/'/g,"\\'")}','${x.produit.replace(/'/g,"\\'")}','${x.telephone}');afficherFavoris();">Retirer</button></td></tr>`).join(''); }
+    function getCriteres() { const c=localStorage.getItem('sani_criteres'); return c?JSON.parse(c):{produit:'',zone:'',prix_max:''}; }
+    function sauvegarderCriteres() { const c={produit:document.getElementById('critere-produit').value.trim(),zone:document.getElementById('critere-zone').value,prix_max:document.getElementById('critere-prix').value}; localStorage.setItem('sani_criteres',JSON.stringify(c)); afficherCriteresActuels(); alert('Critères sauvegardés !'); }
+    function afficherCriteresActuels() { const c=getCriteres(),d=document.getElementById('criteres-actuels'); if(c.produit||c.zone||c.prix_max){ d.innerHTML=`<strong>Critères actifs :</strong> ${c.produit||'tout produit'}, ${c.zone||'toute zone'}, ≤ ${c.prix_max||'tout prix'} FCFA`; document.getElementById('critere-produit').value=c.produit; document.getElementById('critere-zone').value=c.zone; document.getElementById('critere-prix').value=c.prix_max; } else { d.innerHTML='Aucun critère défini.'; } }
+    async function verifierAlertes() { const c=getCriteres(); if(!c.produit&&!c.zone&&!c.prix_max){ alert('Définissez au moins un critère.'); return; } const p=new URLSearchParams(); if(c.produit) p.append('q',c.produit); if(c.zone) p.append('zone',c.zone); if(c.prix_max) p.append('prix_max',c.prix_max); try { const r=await fetch(`/catalogue/?${p.toString()}`); if(!r.ok) throw new Error('Erreur'); const h=await r.text(); const d=new DOMParser().parseFromString(h,'text/html'); const cards=d.querySelectorAll('.card'); const cont=document.getElementById('resultats-alertes'); if(cards.length===0){ cont.innerHTML='<p style="color:#999;text-align:center;padding:20px;">Aucun produit trouvé.</p>'; return; } cont.innerHTML='<div class="product-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;"></div>'; const grid=cont.querySelector('.product-grid'); cards.forEach(card=>grid.appendChild(card.cloneNode(true))); localStorage.setItem('sani_derniere_verif',new Date().toISOString()); } catch(e) { document.getElementById('resultats-alertes').innerHTML='<p style="color:red;">Erreur.</p>'; } }
+    window.addEventListener('DOMContentLoaded',()=>{ if(document.getElementById('criteres-actuels')) afficherCriteresActuels(); });
+    function chargerMeteo() { fetch("https://api.openweathermap.org/data/2.5/weather?q=Bamako,ML&appid=9f5e30e53b00331eae10cb851bba1681&units=metric&lang=fr").then(r=>r.json()).then(d=>{ if(d.cod!==200) return; document.getElementById('meteo-ville').textContent=d.name; document.getElementById('meteo-temp').textContent=Math.round(d.main.temp)+"°C"; document.getElementById('meteo-desc').textContent=d.weather[0].description; document.getElementById('meteo-icon').innerHTML=`<img src="https://openweathermap.org/img/wn/${d.weather[0].icon}.png" alt="">`; }).catch(()=>{}); }
+    chargerMeteo();
+    document.querySelectorAll('a[href*="logout"]').forEach(l=>l.addEventListener("click",function(e){ e.preventDefault(); document.getElementById("hidden-logout-form").submit(); }));
+</script>
+
+<!-- SCRIPT DE MARQUAGE AUTOMATIQUE DES NOTIFICATIONS COMME LUES -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var notifTab = document.getElementById('notifications');
+        if (notifTab) {
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.target.id === 'notifications' && mutation.target.classList.contains('active')) {
+                        fetch("{% url 'marquer_notifications_lues' %}", {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            }
+                        }).then(function() {
+                            var badges = document.querySelectorAll('.notification-badge');
+                            badges.forEach(function(b) { b.style.display = 'none'; });
+                            var sidebarBadge = document.querySelector('.sidebar-btn .badge.badge-danger');
+                            if (sidebarBadge) { sidebarBadge.style.display = 'none'; }
+                        });
+                    }
+                });
+            });
+            observer.observe(notifTab, { attributes: true, attributeFilter: ['class'] });
+        }
+    });
+</script>
+{% endblock %}

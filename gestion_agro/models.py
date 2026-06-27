@@ -5,8 +5,9 @@ from django.contrib.auth.models import User
 import uuid
 from django.dispatch import receiver
 from django.db.models.signals import post_save
-from datetime import  timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
+from django.db.models import F
 # --- CONSTANTES ---
 LISTE_MARCHES = [
     ('MEDINE', 'Marché de Médine'),
@@ -22,7 +23,7 @@ ZONES_CHOICES =[
     ('SEGOU','Segou')
 ]
 
-# --- MODÈLES ---
+
 
 class Producteur(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='producteur_profil', null=True, blank=True)
@@ -31,12 +32,45 @@ class Producteur(models.Model):
     telephone = models.CharField(max_length=20)
     photo_profil = models.ImageField(upload_to='profils/', null=True, blank=True)
     est_verifie = models.BooleanField(default=False)
-    score_confiance = models.IntegerField(default=100) # Score sur 100
+    score_confiance = models.IntegerField(default=100)
+    piece_identite = models.ImageField(upload_to='pieces_identite/', null=True, blank=True)
+    type_piece = models.CharField(max_length=30, choices=[
+        ('CARTE_IDENTITE', 'Carte d\'identité'),
+        ('CARTE_BIOMETRIQUE', 'Carte biométrique/Nina'),
+        ('PASSEPORT', 'Passeport'),
+        
+    ], default='CARTE_IDENTITE')
+    numero_piece = models.CharField(max_length=50, null=True, blank=True)
+    est_actif = models.BooleanField(default=True, verbose_name="Compte actif")
 
-
-    def __str__(self):
+    def _str_(self):
         return self.nom_complet
+    def calculer_score_confiance(self):
+    # Récupérer toutes les réservations livrées de ce producteur
+     reservations_livrees = Reservation.objects.filter(
+        produit__producteur=self,
+        statut_caution='PAYE',
+        livraison__statut='livre'
+     )
+     total = reservations_livrees.count()
+     if total == 0:
+        self.score_confiance = 100  # valeur par défaut
+        self.save()
+        return
 
+     retards = Livraison.objects.filter(
+        reservation__in=reservations_livrees,
+        date_livraison_reelle__gt=F('reservation__date_disponibilite')
+     ).count()
+
+     litiges = Litige.objects.filter(
+        livraison__reservation__in=reservations_livrees
+     ).count()
+
+    # Chaque retard enlève 2 points, chaque litige 5 points, minimum 0
+     score = max(0, 100 - (retards * 2) - (litiges * 5))
+     self.score_confiance = int(score)
+     self.save()
 class ProduitAgricole(models.Model):
     UNITES =[
         ('KG','Kilogramme'),
@@ -49,6 +83,13 @@ class ProduitAgricole(models.Model):
         ('SUR_PIED', '🌳 En cours de maturité (Sur pied)'),
         ('RECOLTE', '📦 Récolté et prêt'),
     ]
+    CATEGORIES = [
+        ('LEGUMES', '🥬 Légumes'),
+        ('FRUITS', '🍎 Fruits'),
+        ('CEREALES', '🌾 Céréales'),
+        ('TUBERCULES', '🥔 Tubercules'),
+    ]
+
     # --- DICTIONNAIRE DE CONSERVATION AUTOMATIQUE (en jours) ---
     DUREE_CONSERVATION = {
         'TOMATE': 10,
@@ -61,6 +102,7 @@ class ProduitAgricole(models.Model):
         'RIZ': 365,
     }
     producteur = models.ForeignKey(Producteur, on_delete=models.CASCADE, null=True, blank=True, related_name='produits')
+    categorie = models.CharField(max_length=20, choices=CATEGORIES, default='LEGUMES')
     nom = models.CharField(max_length=100)
     
     # On garde quantite_initiale comme la prévision faite par le producteur
@@ -68,6 +110,7 @@ class ProduitAgricole(models.Model):
     quantite_disponible = models.PositiveBigIntegerField(default=0, verbose_name="Reste disponible")
     
     unite = models.CharField(max_length=10, choices=UNITES, default='KG')
+    
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='produits/')
     video_demonstration = models.FileField(upload_to='videos_produits/', null=True, blank=True)
@@ -108,49 +151,55 @@ class ProduitAgricole(models.Model):
             # On utilise Decimal('0.80') au lieu de 0.80
             return round(self.prix_unitaire * Decimal('0.80'), 0)
         return self.prix_unitaire
+    @property
+    def etat_commercial(self):
+        """Logique métier centrale pour le cycle de vie du produit."""
+        maintenant = timezone.now().date()
+        if self.quantite_disponible <= 0:
+            return "EPUISE"
+        if self.date_peremption_prevue and self.date_peremption_prevue < maintenant:
+            return "PERIME"
+        return "DISPONIBLE"
 
 
-    
     def save(self, *args, **kwargs):
-        # 1. Initialisation du stock lors de la première création
-        if not self.pk: 
-            self.quantite_disponible = self.quantite_initiale
-            
-        # 2. CALCUL AUTOMATIQUE DE LA DATE DE PÉREMPTION
-        if not self.date_peremption_prevue:
-            # On récupère la date de récolte ou la date du jour
-            raw_date = self.date_recolte_prevue if self.date_recolte_prevue else timezone.now()
-            
-            # SÉCURITÉ : On transforme systématiquement en objet 'date' pur
-            # Cela élimine le risque d'avoir un datetime avec des heures/minutes
-            if hasattr(raw_date, 'date'):
-                date_depart = raw_date.date()
-            else:
-                date_depart = raw_date
-            
-            # Nettoyage du nom pour correspondre à ton dictionnaire
-            nom_nettoye = self.nom.strip().upper()
-            
-            # Récupération de la durée avec valeur par défaut 14
-            jours = int(self.DUREE_CONSERVATION.get(nom_nettoye, 14))
-            
-            # Calcul : Addition de deux objets 'date' et 'timedelta'
-            self.date_peremption_prevue = date_depart + timedelta(days=jours)
-            
-            
-        # Appel final à la méthode save parente
-        super().save(*args, **kwargs)
+    # 1. Initialisation du stock lors de la première création
+     if not self.pk:
+        self.quantite_disponible = self.quantite_initiale
+
+    # 2. Calcul automatique de la date de péremption si elle n'est pas déjà fournie
+     if not self.date_peremption_prevue:
+        base_date = self.date_recolte_prevue if self.date_recolte_prevue else timezone.now()
+        if isinstance(base_date, str):
+            base_date = datetime.strptime(base_date, '%Y-%m-%d').date()
+        elif hasattr(base_date, 'date'):
+            base_date = base_date.date()
+        nom_nettoye = self.nom.strip().upper()
+        jours = int(self.DUREE_CONSERVATION.get(nom_nettoye, 14))
+        self.date_peremption_prevue = base_date + timedelta(days=jours)
+
+     super().save(*args, **kwargs)
+
 class Commercant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='commercant_profil', null=True, blank=True)
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
     telephone = models.CharField(max_length=20)
     ville_marche = models.CharField(max_length=100)
-    
+    est_verifie = models.BooleanField(default=False)
+    piece_identite = models.ImageField(upload_to='pieces_identite/', null=True, blank=True)
+    type_piece = models.CharField(max_length=30, choices=[
+        ('CARTE_IDENTITE', 'Carte d\'identité'),
+        ('CARTE_BIOMETRIQUE', 'Carte biométrique/Nina'),
+        ('PASSEPORT', 'Passeport'),
+        
+        
+    ], default='CARTE_IDENTITE')
+    numero_piece = models.CharField(max_length=50, null=True, blank=True)
+    est_actif = models.BooleanField(default=True, verbose_name="Compte actif")
 
-    def __str__(self):
+    def _str_(self):
         return f"{self.nom} {self.prenom} ({self.ville_marche})"
-
 class Transporteur(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='transporteur_profil', null=True, blank=True)
     nom = models.CharField(max_length=100, verbose_name="Nom du Transporteur/Compagnie")
@@ -160,64 +209,98 @@ class Transporteur(models.Model):
     plaque_immatriculation = models.CharField(max_length=20, verbose_name="N° Plaque")
     disponible = models.BooleanField(default=True, verbose_name="Disponible")
     tarif_base = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Tarif de base (FCFA)")
+    score_fiabilite = models.IntegerField(default=100)
+    capacite_kg = models.PositiveIntegerField(default=10000, verbose_name="Capacité du camion (kg)")
+    est_verifie = models.BooleanField(default=False)
+    piece_identite = models.ImageField(upload_to='pieces_identite/', null=True, blank=True)
+    type_piece = models.CharField(max_length=30, choices=[
+        ('CARTE_IDENTITE', 'Carte d\'identité'),
+        ('CARTE_BIOMETRIQUE', 'Carte biométrique/Nina'),
+        ('PASSEPORT', 'Passeport'),
+        
+    ], default='CARTE_IDENTITE')
+    numero_piece = models.CharField(max_length=50, null=True, blank=True)
+    est_actif = models.BooleanField(default=True, verbose_name="Compte actif")
 
-    def __str__(self):
+    def _str_(self):
         return f"{self.nom} - {self.vehicule}"
 class Reservation(models.Model):
     CHOIX_PAIEMENT = [('OM', 'Orange Money'), ('MOOV', 'Moov Money'), ('CASH', 'Espèces/Dépôt')]
-    
+    STATUT_CAUTION = [
+        ('NON_PAYE', 'Non payée'),
+        ('ATTENTE_VALIDATION', 'En attente de validation'),
+        ('PAYE', 'Payée'),
+        ('BLOQUEE', 'Bloquée'),
+        ('LIBEREE', 'Libérée'),
+    ]
+
     produit = models.ForeignKey(ProduitAgricole, on_delete=models.CASCADE)
     commercant = models.ForeignKey(Commercant, on_delete=models.CASCADE)
     quantite_voulue = models.PositiveIntegerField(default=0)
     date_reservation = models.DateTimeField(auto_now_add=True)
-    # Assure-toi que LISTE_MARCHES est défini au-dessus de cette classe
     marche_destination = models.CharField(max_length=50, choices=LISTE_MARCHES, default='MEDINE')
     mode_paiement = models.CharField(max_length=20, choices=CHOIX_PAIEMENT, default='CASH')
     ref_transaction = models.CharField(max_length=100, null=True, blank=True)
     statut_caution = models.CharField(
-        max_length=20,
-        choices=[('NON_PAYE', '❌ En attente'), ('PAYE', '✅ Payée')],
+        max_length=30,
+        choices=STATUT_CAUTION,
         default='NON_PAYE'
     )
+    statut_livraison = models.CharField(
+        max_length=20,
+        choices=[
+            ('A_EXPEDIER', 'À expédier'),
+            ('EN_TRANSIT', 'En transit'),
+            ('LIVRE', 'Livré'),
+        ],
+        default='A_EXPEDIER',
+        verbose_name="Statut d'expédition"
+    )
+    statut_reste = models.CharField(
+    max_length=20,
+    choices=[
+        ('NON_PAYE', 'Non payé'),
+        ('DECLARE', 'Déclaré payé'),
+        ('CONFIRME', 'Confirmé par le producteur'),
+        ('LITIGE', 'En litige'),
+    ],
+    default='NON_PAYE'
+)
     date_disponibilite = models.DateField(null=True, blank=True)
     confirmation_producteur = models.BooleanField(default=False)
     prix_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
     caution_20 = models.DecimalField(max_digits=12, decimal_places=2, default=0, editable=False)
+    preuve_paiement = models.ImageField(upload_to='preuves_paiement/', null=True, blank=True, verbose_name="Photo du reçu / SMS")
 
     def save(self, *args, **kwargs):
-        # 1. Calcul des prix (Conversion en Decimal pour éviter les erreurs de calcul)
         self.prix_total = Decimal(self.produit.prix_unitaire) * Decimal(self.quantite_voulue)
-        # On calcule les 20% de caution
         self.caution_20 = (self.prix_total * Decimal('0.20')).quantize(Decimal('0.01'))
-        
-        # 2. Gestion du stock
-        if not self.pk: # Seulement à la création
+        if not self.pk:
             if self.produit.quantite_disponible >= self.quantite_voulue:
                 self.produit.quantite_disponible -= self.quantite_voulue
                 self.produit.save()
             else:
-                # Optionnel : lever une erreur si le stock est insuffisant
                 raise ValidationError("Stock insuffisant pour cette réservation")
-            
-        super().save(*args, **kwargs)  
+        super().save(*args, **kwargs)
+
     @property
     def reste_a_payer(self):
-        # Cette fonction calcule le montant que le commerçant doit encore au producteur
         return self.prix_total - self.caution_20
 
     @property
     def nom_du_producteur(self):
-        # Pour afficher facilement le nom du producteur dans tes tableaux
-        return self.produit.producteur.nom_complet if self.produit.producteur else "Inconnu"      
-
-
+        return self.produit.producteur.nom_complet if self.produit.producteur else ""
 
 class Livraison(models.Model):
     STATUT_CHOICES = [
-        ('en_attente', '⏳ En attente'),
-        ('en_route', '🚛 En route'),
-        ('livre', '✅ Livré'),
+        ('proposition', 'Tarif proposé - En attente'),
+        ('accepte', 'Accepté par le commerçant'),
+        ('refuse', 'Refusé par le commerçant'),
+        ('en_attente', 'En attente de chargement'),
+        ('en_route', 'En route'),
+        ('livre', 'Livré')
     ]
+    tarif_propose = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     reservation = models.OneToOneField(Reservation, on_delete=models.CASCADE)
     transporteur = models.ForeignKey(Transporteur, on_delete=models.SET_NULL, null=True, blank=True)
     date_depart = models.DateTimeField(null=True, blank=True)
@@ -308,17 +391,35 @@ class FluxProduit(models.Model):
     livraison = models.ForeignKey('Livraison', on_delete=models.CASCADE, related_name='etapes')
     etape = models.CharField(max_length=100, verbose_name="Action effectuée")
     localisation = models.CharField(max_length=255, verbose_name="Lieu actuel")
+    details = models.TextField(blank=True, null=True, verbose_name="Détails supplémentaires")
     date_heure = models.DateTimeField(auto_now_add=True)
     code_tracabilite = models.CharField(max_length=50, unique=True, editable=False)
 
+    class Meta:
+        ordering = ['-date_heure']
+
     def save(self, *args, **kwargs):
         if not self.code_tracabilite:
-            # Génère un code unique pour le suivi logistique
             self.code_tracabilite = f"ML-{uuid.uuid4().hex[:6].upper()}"
         super().save(*args, **kwargs)
 
+    def _str_(self):
+        return f"{self.code_tracabilite} | {self.etape} - {self.localisation}"
+class ZoneProduction(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
     def __str__(self):
-        return f"{self.etape} - {self.localisation}"
+        return self.nom
+
+class Marche(models.Model):
+    nom = models.CharField(max_length=100, unique=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+    def __str__(self):
+        return self.nom    
 
 class Litige(models.Model):
     livraison = models.ForeignKey('Livraison', on_delete=models.CASCADE, related_name='litiges')
@@ -330,3 +431,69 @@ class Litige(models.Model):
     def __str__(self):
         return f"Litige #{self.id} sur Livraison {self.livraison.id}"    
 
+class AlerteSecuriteRoutiere(models.Model):
+    TYPE_INCIDENT = [
+        ('BLOCAGE', 'Barrage / Blocage routier'),
+        ('TENSION', 'Zone de forte tension'),
+        ('PANNE', 'Incident logistique / Route impraticable'),
+    ]
+    
+    axe_routier = models.CharField(max_length=255, help_text="Ex: Axe Ségou - Bamako")
+    type_incident = models.CharField(max_length=20, choices=TYPE_INCIDENT)
+    description_danger = models.TextField(help_text="Détails sur l'incident pour les chauffeurs")
+    date_publication = models.DateTimeField(auto_now_add=True)
+    est_active = models.BooleanField(default=True, verbose_name="Alerte toujours en cours")
+
+    def __str__(self):
+        return f"[{self.get_type_incident_display()}] {self.axe_routier}"
+class DemandeMarche(models.Model):
+    STATUT_CHOICES = [
+        ('OUVERTE', 'Ouverte'),
+        ('ATTRIBUEE', 'Attribuée'),
+        ('SATISFAITE', 'Satisfaite'),
+        ('EXPIREE', 'Expirée'),
+    ]
+    commercant = models.ForeignKey(Commercant, on_delete=models.CASCADE, related_name='demandes')
+    produit = models.CharField(max_length=100)
+    quantite = models.PositiveIntegerField()
+    date_besoin = models.DateField()
+    marche = models.CharField(max_length=100)
+    date_publication = models.DateTimeField(auto_now_add=True)
+    producteur_engage = models.ForeignKey(
+        Producteur,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='demandes_engagees'
+    )
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='OUVERTE')
+
+    def __str__(self):
+        return f"{self.commercant.nom} cherche {self.quantite}kg de {self.produit} - {self.statut}"
+class Transaction(models.Model):
+    TYPE_CHOICES = [
+        ('CAUTION', 'Caution reçue'),
+        ('REMBOURSEMENT', 'Remboursement commerçant'),
+        ('Paiement', 'Paiement producteur'),
+        ('GAIN_TRANSPORT', 'Gain du transporteur'),
+    ]
+    STATUT_CHOICES = [
+        ('EN_ATTENTE', 'En attente'),
+        ('EFFECTUE', 'Effectué'),
+    ]
+
+    reservation = models.ForeignKey('Reservation', on_delete=models.CASCADE, related_name='transactions')
+    type_transaction = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    montant = models.DecimalField(max_digits=12, decimal_places=2)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='EN_ATTENTE')
+    date_execution = models.DateTimeField(null=True, blank=True, verbose_name="Date d'exécution")
+    commentaire = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.get_type_transaction_display()} - {self.montant} FCFA ({self.get_statut_display()})"
+
+    def marquer_effectue(self):
+        self.statut = 'EFFECTUE'
+        self.date_execution = timezone.now()
+        self.save()

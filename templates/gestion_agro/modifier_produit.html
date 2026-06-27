@@ -25,6 +25,7 @@
         .btn-save:hover { background: #01579b; }
         .img-preview { width: 100px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; }
         .back-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+        #date_div { transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -52,7 +53,9 @@
 
             <div id="date_div">
                 <label>Date de récolte prévue</label>
-                <input type="date" name="date_recolte_prevue" value="{{ produit.date_recolte_prevue|date:'Y-m-d' }}">
+                <input type="date" name="date_recolte_prevue" id="date_recolte_prevue" 
+                       value="{{ produit.date_recolte_prevue|date:'Y-m-d' }}">
+                <small style="font-size: 11px; color: #777;">Uniquement pour les produits sur pied.</small>
             </div>
 
             <label>Prix (FCFA)</label>
@@ -78,10 +81,17 @@
     function toggleDate() {
         var statut = document.getElementById("statut_select").value;
         var dateDiv = document.getElementById("date_div");
-        dateDiv.style.display = (statut === "RECOLTE") ? "none" : "block";
+        var dateInput = document.getElementById("date_recolte_prevue");
+        
+        if (statut === "RECOLTE") {
+            dateDiv.style.display = "none";
+            dateInput.value = ""; // Vider la date
+        } else {
+            dateDiv.style.display = "block";
+        }
     }
-    // Lancer au démarrage pour vérifier l'état actuel
-    window.onload = toggleDate;
+    // Lancer au chargement de la page
+    window.addEventListener('DOMContentLoaded', toggleDate);
 </script>
 
 </body>

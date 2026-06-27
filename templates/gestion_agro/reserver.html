@@ -26,7 +26,7 @@
                 <span>Caution à payer (20%) :</span>
                 <span style="font-weight: bold;"><span id="montant_caution">0</span> FCFA</span>
             </div>
-            <div style="display: flex; justify-content: space-between; color: #2e7d32; font-size: 0.9em; border-top: 1px solid #eee; pt: 5px;">
+            <div style="display: flex; justify-content: space-between; color: #2e7d32; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 5px;">
                 <span>Reste à la livraison (80%) :</span>
                 <span style="font-weight: bold;"><span id="montant_reste">0</span> FCFA</span>
             </div>
@@ -34,17 +34,40 @@
 
         <div>
             <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Marché de destination</label>
-            <input type="text" name="marche_destination" placeholder="Ex: Grand Marché de Bamako" required 
-                   style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; outline-color: #2e7d32;">
+            <select name="marche_destination" required 
+                   style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; outline-color: #2e7d32; background: white;">
+                <option value="">-- Choisir un marché --</option>
+                <option value="MEDINE">Marché de Médine</option>
+                <option value="NIARÉLA">Marché de Niaréla</option>
+                <option value="DIBIDA">Marché de Dibida</option>
+                <option value="COURS_FLEUVE">Marché Cours Fleuve</option>
+                <option value="BOUGOBA">Marché de Bougoba</option>
+            </select>
         </div>
 
         <div>
             <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Mode de paiement de la caution</label>
-            <select name="mode_paiement" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: white;">
-                <option value="ORANGE_MONEY">Orange Money Mali</option>
-                <option value="MOOV_MONEY">Moov Money (Malitel)</option>
-                <option value="CASH">Espèces / Versement</option>
-            </select>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%;">
+                <div style="flex: 1;">
+                    <input type="radio" class="btn-check" name="mode_paiement" id="om_mali" value="ORANGE_MONEY" checked>
+                    <label class="btn btn-outline-success w-100 p-2 d-flex align-items-center justify-content-center gap-2" for="om_mali" style="border-radius: 8px; cursor: pointer; min-height: 48px;">
+                        <span style="font-weight: bold; font-size: 14px;">🍊 Orange Money</span>
+                    </label>
+                </div>
+                <div style="flex: 1;">
+                    <input type="radio" class="btn-check" name="mode_paiement" id="moov_mali" value="MOOV_MONEY">
+                    <label class="btn btn-outline-success w-100 p-2 d-flex align-items-center justify-content-center gap-2" for="moov_mali" style="border-radius: 8px; cursor: pointer; min-height: 48px;">
+                        <span style="font-weight: bold; font-size: 14px;">💜 Moov Money</span>
+                    </label>
+                </div>
+            </div>
+
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 14px;">Numéro de compte Mobile Money</label>
+            <div class="input-group" style="margin-bottom: 5px;">
+                <span class="input-group-text bg-light text-dark fw-bold" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px;">+223</span>
+                <input type="tel" class="form-control" name="telephone_paiement" placeholder="Ex: 70000000" required pattern="[0-9]{8}" style="padding: 12px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; font-size: 14px;">
+            </div>
         </div>
 
         <div style="background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 5px solid #ff9800; font-size: 0.85em; color: #e65100;">

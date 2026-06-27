@@ -1,0 +1,25 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>📢 Toutes les demandes de marché ouvertes</h2>
+    {% if demandes %}
+        <div class="row">
+            {% for d in demandes %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ d.produit }}</h5>
+                        <p><strong>Quantité :</strong> {{ d.quantite }} kg</p>
+                        <p><strong>Marché :</strong> {{ d.marche }}</p>
+                        <p><strong>Date limite :</strong> {{ d.date_besoin|date:"d/m/Y" }}</p>
+                        <a href="{% url 's_engager_demande' d.id %}" class="btn btn-success">🤝 S'engager</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Aucune demande de marché pour le moment.</p>
+    {% endif %}
+</div>
+{% endblock %}

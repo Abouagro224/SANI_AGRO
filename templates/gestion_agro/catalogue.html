@@ -1,147 +1,158 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>SANI-AGRO | Marché Numérique</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #0d47a1;
-            --success: #2e7d32;
-            --warning: #f57c00;
-            --bg: #f0f2f5;
-        }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: #333; }
-        
-        .header-section { 
-            background: white; padding: 40px 20px; text-align: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px;
-        }
-        .header-section h1 { color: var(--primary); margin: 0; font-size: 2.5rem; }
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+{% load static %}
 
-        .search-container {
-            max-width: 1100px; margin: -30px auto 30px; background: white;
-            padding: 20px; border-radius: 15px; display: flex; gap: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); align-items: center;
-        }
-        .search-input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
-        .filter-select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
+<style>
+    :root {
+        --primary: #1a237e;
+        --primary-light: #3f51b5;
+        --accent: #ff9800;
+        --bg-body: #f4f7f6;
+        --white: #ffffff;
+    }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); margin: 0; padding: 25px; color: #333; }
+    .container { max-width: 1200px; margin: auto; background: var(--white); padding: 35px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.4); }
 
-        .product-grid { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 25px; max-width: 1200px; margin: 0 auto 50px; padding: 0 20px;
-        }
+    .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 25px; margin-bottom: 35px; }
+    .profile-info { display: flex; align-items: center; gap: 20px; }
+    h1 { color: var(--primary); margin: 0; font-size: 2em; font-weight: 800; letter-spacing: -1px; }
+    .btn-add { background: linear-gradient(135deg, #3f51b5, #1a237e); color: white; padding: 16px 28px; text-decoration: none; border-radius: 18px; font-weight: bold; transition: 0.3s; box-shadow: 0 8px 20px rgba(26, 35, 126, 0.25); display: inline-flex; align-items: center; gap: 8px; }
+    .btn-add:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(26, 35, 126, 0.35); }
 
-        .card { 
-            background: white; border-radius: 20px; overflow: hidden; 
-            transition: all 0.3s ease; border: 1px solid #eee; position: relative;
-        }
-        .card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+    .search-container { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; flex-wrap: wrap; }
+    .search-input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+    .filter-select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
 
-        .image-container { position: relative; height: 200px; }
-        .card-img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .video-badge {
-            position: absolute; top: 15px; left: 15px; background: rgba(211, 47, 47, 0.9);
-            color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; z-index: 2;
-        }
-        .status-badge {
-            position: absolute; top: 15px; right: 15px; padding: 5px 12px;
-            border-radius: 50px; font-size: 11px; font-weight: bold; color: white; z-index: 2;
-        }
+    .tri-buttons { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+    .tri-btn { padding: 8px 18px; border-radius: 25px; border: 2px solid var(--primary-light); background: transparent; color: var(--primary-light); font-weight: 700; font-size: 12px; cursor: pointer; transition: 0.2s; text-decoration: none; }
+    .tri-btn.active, .tri-btn:hover { background: var(--primary-light); color: white; }
 
-        .card-content { padding: 20px; }
-        .origin { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .product-name { margin: 10px 0; font-size: 20px; font-weight: 700; color: #222; }
-        
-        .price-tag { 
-            background: #e3f2fd; color: var(--primary); padding: 10px;
-            border-radius: 10px; display: inline-block; font-weight: 800; font-size: 1.1rem;
-        }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
 
-        .trust-score {
-            display: flex; align-items: center; gap: 5px; font-size: 13px;
-            margin-top: 15px; color: #555; border-top: 1px solid #f0f0f0; padding-top: 10px;
-        }
+    .card { background: white; border-radius: 20px; overflow: hidden; transition: all 0.3s ease; border: 1px solid #eee; position: relative; }
+    .card:hover { transform: translateY(-10px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
 
-        .video-block {
-            margin-top: 15px;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px dashed #ccc;
-        }
-        .video-block p {
-            margin: 0 0 8px 0;
-            font-size: 12px;
-            font-weight: bold;
-            color: #555;
-        }
-        .product-video {
-            width: 100%;
-            border-radius: 8px;
-            background: #000;
-        }
+    .image-container { position: relative; height: 200px; }
+    .card-img { width: 100%; height: 100%; object-fit: cover; }
 
-        .btn-buy { 
-            display: block; background: var(--primary); color: white; text-align: center; 
-            padding: 14px; border-radius: 12px; text-decoration: none; margin-top: 15px; 
-            font-weight: bold; transition: 0.3s; border: none; cursor: pointer;
-        }
-        .btn-buy:hover { background: #0a3a85; }
-    </style>
-</head>
-<body>
+    .video-badge { position: absolute; top: 15px; left: 15px; background: rgba(211, 47, 47, 0.9); color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; z-index: 2; }
+    .status-badge { position: absolute; top: 15px; right: 15px; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; color: white; z-index: 2; }
 
-    <div class="header-section">
-        <h1><i class="fas fa-store"></i> SANI-AGRO Market</h1>
-        <p>Plateforme de mise en relation directe Producteurs-Commerçants au Mali</p>
+    .card-content { padding: 20px; }
+    .origin { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .product-name { margin: 10px 0; font-size: 20px; font-weight: 700; color: #222; }
+
+    .price-tag { background: #e3f2fd; color: var(--primary); padding: 10px; border-radius: 10px; display: inline-block; font-weight: 800; font-size: 1.1rem; }
+
+    .trust-score { display: flex; align-items: center; gap: 5px; font-size: 13px; margin-top: 15px; color: #555; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+
+    .video-block { margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 12px; border: 1px dashed #ccc; }
+    .video-block p { margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #555; }
+    .product-video { width: 100%; border-radius: 8px; background: #000; }
+
+    .btn-buy { display: block; background: var(--primary); color: white; text-align: center; padding: 14px; border-radius: 12px; text-decoration: none; margin-top: 15px; font-weight: bold; transition: 0.3s; border: none; cursor: pointer; }
+    .btn-buy:hover { background: #0a3a85; }
+
+    .date-info { font-size: 13px; margin-top: 8px; }
+    .date-recolte { color: #e65100; font-weight: 600; }
+    .date-peremption { color: #c62828; font-weight: 600; }
+
+    .badge-new { position: absolute; top: 15px; left: 15px; background: #2e7d32; color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; z-index: 3; }
+    .badge-urgent { position: absolute; top: 15px; left: 15px; background: #d32f2f; color: white; padding: 5px 12px; border-radius: 50px; font-size: 11px; font-weight: bold; z-index: 3; animation: blink 1.5s infinite; }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+    .btn-fav { position: absolute; bottom: 15px; right: 15px; background: rgba(255,255,255,0.8); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 3; font-size: 18px; transition: 0.2s; border: none; }
+    .btn-fav:hover { background: white; transform: scale(1.1); }
+    .btn-share { display: inline-flex; align-items: center; gap: 5px; background: #25d366; color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 12px; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+    .btn-share:hover { background: #1da851; }
+</style>
+
+<div class="container">
+
+    <!-- EN-TÊTE CATALOGUE -->
+    <div class="header-flex">
+        <div class="profile-info">
+            <div>
+                <h1>🛍️ SANI-AGRO Market</h1>
+                <span style="color:#666;">Plateforme de mise en relation directe Producteurs-Commerçants au Mali</span>
+            </div>
+        </div>
+        <a href="{% url 'dashboard_commercant' %}" class="btn-add">📋 Mon Dashboard</a>
     </div>
 
+    <!-- RECHERCHE ET FILTRES -->
     <form method="GET" class="search-container">
         <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Rechercher un produit (Ex: Mangue)..." class="search-input">
-        
+        <select name="categorie" class="filter-select">
+            <option value="">Toutes catégories</option>
+            <option value="LEGUMES" {% if request.GET.categorie == 'LEGUMES' %}selected{% endif %}>🥬 Légumes</option>
+            <option value="FRUITS" {% if request.GET.categorie == 'FRUITS' %}selected{% endif %}>🍎 Fruits</option>
+            <option value="CEREALES" {% if request.GET.categorie == 'CEREALES' %}selected{% endif %}>🌾 Céréales</option>
+            <option value="TUBERCULES" {% if request.GET.categorie == 'TUBERCULES' %}selected{% endif %}>🥔 Tubercules</option>
+        </select>
         <select name="zone" class="filter-select">
             <option value="">Toutes les zones</option>
             <option value="SIKASSO" {% if request.GET.zone == 'SIKASSO' %}selected{% endif %}>Sikasso</option>
             <option value="SEGOU" {% if request.GET.zone == 'SEGOU' %}selected{% endif %}>Ségou</option>
-            <option value="BAGUINEDA" {% if request.GET.zone == 'BAGUINEDA' %}selected{% endif %}>Baguineda</option>
+            <option value="BAGUINEDA" {% if request.GET.zone == 'BAGUINEDA' %}selected{% endif %}>Baguinéda</option>
         </select>
-        <button type="submit" class="btn-buy" style="margin-top:0; padding: 10px 25px;">Rechercher</button>
+        <input type="number" name="prix_max" value="{{ request.GET.prix_max|default:'' }}" placeholder="Prix max (FCFA)" class="search-input" style="max-width: 150px;">
+        <button type="submit" class="btn-add" style="margin-top:0; padding: 12px 25px;">Rechercher</button>
     </form>
 
-    <div class="product-grid">
-        {% for p in produits %}
-        <div class="card">
-            <div class="image-container">
-                {% if p.video_demonstration %}
-                    <div class="video-badge"><i class="fas fa-video"></i> Preuve Vocale</div>
-                {% endif %}
-                
-                {% if p.statut_recolte == 'SUR_PIED' %}
-                    <span class="status-badge" style="background: var(--warning);">🌳 SUR PIED</span>
-                {% else %}
-                    <span class="status-badge" style="background: var(--success);">✅ RÉCOLTÉ</span>
-                {% endif %}
+    <!-- BOUTONS DE TRI -->
+    <div class="tri-buttons">
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.categorie %}categorie={{ request.GET.categorie }}&{% endif %}{% if request.GET.zone %}zone={{ request.GET.zone }}&{% endif %}{% if request.GET.prix_max %}prix_max={{ request.GET.prix_max }}&{% endif %}tri=default" class="tri-btn {% if request.GET.tri == 'default' or not request.GET.tri %}active{% endif %}">🔢 Par défaut</a>
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.categorie %}categorie={{ request.GET.categorie }}&{% endif %}{% if request.GET.zone %}zone={{ request.GET.zone }}&{% endif %}{% if request.GET.prix_max %}prix_max={{ request.GET.prix_max }}&{% endif %}tri=prix" class="tri-btn {% if request.GET.tri == 'prix' %}active{% endif %}">💰 Prix croissant</a>
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.categorie %}categorie={{ request.GET.categorie }}&{% endif %}{% if request.GET.zone %}zone={{ request.GET.zone }}&{% endif %}{% if request.GET.prix_max %}prix_max={{ request.GET.prix_max }}&{% endif %}tri=date" class="tri-btn {% if request.GET.tri == 'date' %}active{% endif %}">📅 Plus récents</a>
+        <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.categorie %}categorie={{ request.GET.categorie }}&{% endif %}{% if request.GET.zone %}zone={{ request.GET.zone }}&{% endif %}{% if request.GET.prix_max %}prix_max={{ request.GET.prix_max }}&{% endif %}tri=score" class="tri-btn {% if request.GET.tri == 'score' %}active{% endif %}">⭐ Meilleur score</a>
+    </div>
 
+    <!-- GRILLE DE PRODUITS -->
+    <div class="product-grid" id="product-grid">
+        {% for p in produits %}
+        <div class="card" data-prix="{{ p.prix_unitaire }}" data-date="{{ p.date_publication|date:'Y-m-d H:i:s' }}" data-score="{{ p.producteur.score_confiance }}">
+            <div class="image-container">
+                {% if p.date_peremption_prevue %}
+                    {% with jours_restants=p.date_peremption_prevue|timeuntil:aujourdhui %}
+                        {% if jours_restants.days <= 3 %}
+                            <span class="badge-urgent">⚠️ Urgent</span>
+                        {% elif p.date_publication|date:'Y-m-d' == aujourdhui|date:'Y-m-d' %}
+                            <span class="badge-new">🆕 Nouveau</span>
+                        {% elif p.video_demonstration %}
+                            <span class="video-badge"><i class="fas fa-video"></i> Preuve Vocale</span>
+                        {% endif %}
+                    {% endwith %}
+                {% elif p.date_publication|date:'Y-m-d' == aujourdhui|date:'Y-m-d' %}
+                    <span class="badge-new">🆕 Nouveau</span>
+                {% elif p.video_demonstration %}
+                    <span class="video-badge"><i class="fas fa-video"></i> Preuve Vocale</span>
+                {% endif %}
+                {% if p.statut_recolte == 'SUR_PIED' %}
+                    <span class="status-badge" style="background: var(--accent);">🌳 SUR PIED</span>
+                {% else %}
+                    <span class="status-badge" style="background: #2e7d32;">✅ RÉCOLTÉ</span>
+                {% endif %}
                 {% if p.image %}
                     <img src="{{ p.image.url }}" class="card-img" alt="{{ p.nom }}">
                 {% else %}
                     <div style="height:100%; background:#ddd; display:flex; align-items:center; justify-content:center;">Image non disponible</div>
                 {% endif %}
+                <button class="btn-fav" onclick="toggleFavoriCatalogue('{{ p.producteur.nom_complet|escapejs }}', '{{ p.nom|escapejs }}', '{{ p.producteur.telephone }}', '{{ p.prix_unitaire }}')" title="Ajouter aux favoris">⭐</button>
             </div>
 
             <div class="card-content">
                 <span class="origin"><i class="fas fa-map-marker-alt"></i> {{ p.zone_production }} | {{ p.zone_origine }}</span>
                 <h2 class="product-name">{{ p.nom }}</h2>
-                
-                <div class="price-tag">
-                    {{ p.prix_unitaire }} <small>FCFA / {{ p.get_unite_display }}</small>
-                </div>
+                <div class="price-tag">{{ p.prix_unitaire }} <small>FCFA / {{ p.get_unite_display }}</small></div>
+                <p style="margin-top: 15px; font-size: 14px;">Stock disponible : <strong>{{ p.quantite_disponible }} {{ p.unite }}</strong></p>
 
-                <p style="margin-top: 15px; font-size: 14px;">
-                    Stock disponible : <strong>{{ p.quantite_disponible }} {{ p.unite }}</strong>
-                </p>
+                {% if p.statut_recolte == 'SUR_PIED' and p.date_recolte_prevue %}
+                <div class="date-info"><span class="date-recolte">🌱 Récolte prévue le {{ p.date_recolte_prevue|date:"d/m/Y" }}</span></div>
+                {% endif %}
+                {% if p.date_peremption_prevue %}
+                <div class="date-info"><span class="date-peremption">⏳ À consommer avant le {{ p.date_peremption_prevue|date:"d/m/Y" }}</span></div>
+                {% endif %}
 
                 {% if p.video_demonstration %}
                 <div class="video-block">
@@ -154,12 +165,12 @@
                 {% endif %}
 
                 <div class="trust-score">
-                    <i class="fas fa-user-check" style="color: var(--success);"></i> 
+                    <i class="fas fa-user-check" style="color: #2e7d32;"></i> 
                     Producteur : <strong>{{ p.producteur.nom_complet }}</strong> 
                     <span style="color: #4caf50; margin-left: auto;">{{ p.producteur.score_confiance }}% confiance</span>
                 </div>
-                
                 <a href="{% url 'reserver_produit' p.id %}" class="btn-buy">🛒 RÉSERVER CETTE RÉCOLTE</a>
+                <a href="https://wa.me/?text={{ p.nom|urlencode }}%20-%20{{ p.prix_unitaire }}%20FCFA%20-%20{{ p.producteur.nom_complet|urlencode }}" target="_blank" class="btn-share">📤 Partager</a>
             </div>
         </div>
         {% empty %}
@@ -170,5 +181,91 @@
         {% endfor %}
     </div>
 
-</body>
-</html>
+    <!-- SECTION DEMANDES DU MARCHÉ -->
+    {% if demandes_marche %}
+    <div style="margin-top: 40px;">
+        <h2 style="color: var(--primary); border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">📢 Besoins du marché (demandes des commerçants)</h2>
+        <div class="product-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+            {% for demande in demandes_marche %}
+            <div class="card" style="border: 2px dashed #ff9800; background: #fff8e1;">
+                <div class="card-content">
+                    <span class="origin"><i class="fas fa-shopping-cart"></i> {{ demande.commercant.nom }} {{ demande.commercant.prenom }}</span>
+                    <h2 class="product-name" style="color: #e65100;">{{ demande.produit }}</h2>
+                    <p style="font-size: 14px;">Quantité : <strong>{{ demande.quantite }} kg</strong></p>
+                    <p style="font-size: 14px;">Marché : <strong>{{ demande.marche }}</strong></p>
+                    <p style="font-size: 13px; color: #555;">À livrer avant le {{ demande.date_besoin|date:"d/m/Y" }}</p>
+                    {% if user.is_authenticated and user.producteur_profil %}
+                    <a href="{% url 's_engager_demande' demande.id %}" class="btn-buy" style="background: #ff9800; margin-top: 15px;">🤝 S'engager sur cette demande</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    function trierProduits(event, type) {
+        document.querySelectorAll('.tri-btn').forEach(function(btn) { btn.classList.remove('active'); });
+        if (event && event.target) {
+            event.target.classList.add('active');
+        } else {
+            var btns = document.querySelectorAll('.tri-btn');
+            if (type === 'default') btns[0].classList.add('active');
+            else if (type === 'prix') btns[1].classList.add('active');
+            else if (type === 'date') btns[2].classList.add('active');
+            else if (type === 'score') btns[3].classList.add('active');
+        }
+
+        var grid = document.getElementById('product-grid');
+        var cards = Array.from(grid.querySelectorAll('.card'));
+
+        if (cards.length === 0) return;
+
+        cards.sort(function(a, b) {
+            if (type === 'prix') {
+                return parseFloat(a.getAttribute('data-prix')) - parseFloat(b.getAttribute('data-prix'));
+            } else if (type === 'date') {
+                return new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date'));
+            } else if (type === 'score') {
+                return parseInt(b.getAttribute('data-score')) - parseInt(a.getAttribute('data-score'));
+            } else {
+                return 0;
+            }
+        });
+
+        cards.forEach(function(card) {
+            grid.appendChild(card);
+        });
+    }
+
+    function getFavoris() {
+        var fav = localStorage.getItem('sani_favoris');
+        return fav ? JSON.parse(fav) : [];
+    }
+
+    function saveFavoris(favoris) {
+        localStorage.setItem('sani_favoris', JSON.stringify(favoris));
+    }
+
+    function toggleFavoriCatalogue(nomProducteur, produit, telephone, prix) {
+        var favoris = getFavoris();
+        var index = favoris.findIndex(function(f) { return f.nom === nomProducteur && f.produit === produit; });
+        if (index >= 0) {
+            favoris.splice(index, 1);
+            alert('Retiré des favoris');
+        } else {
+            favoris.push({ nom: nomProducteur, produit: produit, telephone: telephone, prix: prix });
+            alert('Ajouté aux favoris');
+        }
+        saveFavoris(favoris);
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        var btnDefaut = document.querySelector('.tri-btn[onclick*="default"]');
+        if (btnDefaut) btnDefaut.classList.add('active');
+    });
+</script>
+{% endblock %}

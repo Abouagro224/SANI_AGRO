@@ -2,8 +2,12 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.db.models import Sum
-from .models import ProduitAgricole, Transporteur, Reservation, Commercant, Producteur, Livraison, Notification,FluxProduit,Litige
+from .models import AlerteSecuriteRoutiere
+from .models import ProduitAgricole, Transporteur, ZoneProduction, Marche,Reservation, Commercant, Producteur, Livraison, Notification,FluxProduit,Litige
 
+
+admin.site.register(ZoneProduction)
+admin.site.register(Marche)
 admin.site.site_header = "SANI-AGRO : Pilotage Mali"
 
 @admin.register(Notification)
@@ -141,3 +145,31 @@ class LitigeAdmin(admin.ModelAdmin):
             return mark_safe('<b style="color:green;">✅ RÉSOLU</b>')
         return mark_safe('<b style="color:red;">⚠️ EN ATTENTE</b>')
     etat_litige.short_description = "Statut du problème"    
+
+
+@admin.register(AlerteSecuriteRoutiere)
+class AlerteSecuriteRoutiereAdmin(admin.ModelAdmin):
+    # CORRECTION : 'est_active' doit être présent ici pour pouvoir être édité en ligne
+    list_display = ('axe_routier', 'badge_incident', 'description_danger', 'date_publication', 'est_active', 'badge_statut')
+    
+    # Le reste ne change pas
+    list_filter = ('type_incident', 'est_active', 'date_publication')
+    search_fields = ('axe_routier', 'description_danger')
+    list_editable = ('est_active',)
+
+    def badge_incident(self, obj):
+        if obj.type_incident == 'BLOCAGE':
+            return format_html('<span style="background-color: #ffc107; color: #000; padding: 5px 10px; border-radius: 12px; font-weight: bold; font-size: 11px;">⚠️ Barrage / Blocage</span>')
+        elif obj.type_incident == 'TENSION':
+            return format_html('<span style="background-color: #dc3545; color: #fff; padding: 5px 10px; border-radius: 12px; font-weight: bold; font-size: 11px;">🚨 Zone de Tension</span>')
+        else:
+            return format_html('<span style="background-color: #6c757d; color: #fff; padding: 5px 10px; border-radius: 12px; font-weight: bold; font-size: 11px;">🔧 Incident Route</span>')
+    badge_incident.short_description = "Type d'incident"
+
+    def badge_statut(self, obj):
+        if obj.est_active:
+            return format_html('<b style="color: #dc3545;">En cours</b>')
+        return format_html('<b style="color: #28a745;">Résolu</b>')
+    badge_statut.short_description = "Statut"
+    
+

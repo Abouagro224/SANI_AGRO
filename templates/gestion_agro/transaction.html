@@ -1,0 +1,52 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<style>
+    .container { max-width: 1200px; margin: auto; padding: 20px; }
+    h2 { color: #0d47a1; margin-bottom: 20px; }
+    .table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #0d47a1; color: white; padding: 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+    .badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; }
+    .badge-warning { background: #fff3e0; color: #e65100; }
+    .badge-success { background: #e8f5e9; color: #2e7d32; }
+    .btn-success { background: #2e7d32; color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 12px; }
+    .btn-success:hover { background: #1b5e20; }
+</style>
+
+<div class="container">
+    <h2>💵 Transactions en attente</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Montant</th>
+                    <th>Réservation</th>
+                    <th>Date</th>
+                    <th>Commentaire</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td><strong>#{{ t.id }}</strong></td>
+                    <td><span class="badge {% if t.type_transaction == 'REMBOURSEMENT' %}badge-warning{% else %}badge-success{% endif %}">{{ t.get_type_transaction_display }}</span></td>
+                    <td><strong>{{ t.montant }} FCFA</strong></td>
+                    <td>#{{ t.reservation.id }}</td>
+                    <td>{{ t.date_creation|date:"d/m/Y H:i" }}</td>
+                    <td>{{ t.commentaire|default:"—" }}</td>
+                    <td>
+                        <a href="{% url 'marquer_transaction_effectue' t.id %}" class="btn-success">✅ Effectué</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" style="text-align:center; padding:20px;">✅ Aucune transaction en attente.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

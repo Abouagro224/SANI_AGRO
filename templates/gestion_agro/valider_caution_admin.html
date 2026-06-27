@@ -1,0 +1,42 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>🔒 Validation des cautions en attente</h2>
+    {% if reservations %}
+    <div class="row">
+        {% for res in reservations %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>{{ res.commercant.user.username }} — {{ res.produit.nom }}</h5>
+                    <p>Montant : <strong>{{ res.caution_20 }} FCFA</strong></p>
+                    <p>Date : {{ res.date_reservation|date:"d/m/Y H:i" }}</p>
+                    {% if res.preuve_paiement %}
+                        <img src="{{ res.preuve_paiement.url }}" class="img-fluid mb-2" style="max-height: 200px;">
+                    {% else %}
+                        <p>Aucune preuve uploadée.</p>
+                    {% endif %}
+                    <div class="d-flex gap-2">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="reservation_id" value="{{ res.id }}">
+                            <input type="hidden" name="action" value="valider">
+                            <button type="submit" class="btn btn-success">✅ Valider et bloquer</button>
+                        </form>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="reservation_id" value="{{ res.id }}">
+                            <input type="hidden" name="action" value="rejeter">
+                            <button type="submit" class="btn btn-danger">❌ Rejeter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Aucune caution en attente de validation.</p>
+    {% endif %}
+</div>
+{% endblock %}

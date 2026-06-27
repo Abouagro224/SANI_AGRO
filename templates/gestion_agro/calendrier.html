@@ -1,0 +1,61 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<style>
+    #calendar {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .fc-toolbar-title {
+        font-size: 1.2em !important;
+        color: #1a237e;
+    }
+    .fc-button-primary {
+        background-color: #1a237e !important;
+        border-color: #1a237e !important;
+    }
+</style>
+
+<div id="calendar"></div>
+
+<!-- FullCalendar -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'fr',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listMonth'
+            },
+            events: [
+                {% for e in evenements %}
+                {
+                    title: "{{ e.title|escapejs }}",
+                    start: "{{ e.start }}",
+                    backgroundColor: "{{ e.color }}",
+                    borderColor: "{{ e.color }}",
+                    extendedProps: {
+                        type: "{{ e.extendedProps.type }}"
+                    }
+                },
+                {% endfor %}
+            ],
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}

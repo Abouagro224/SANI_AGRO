@@ -1,80 +1,448 @@
 {% extends 'gestion_agro/base.html' %}
 
 {% block content %}
+{% load static %}
+
 <style>
-    /* On utilise les couleurs de l'admin Django */
-    .django-header { background: #417690; color: white; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-    .stat-box { border: 1px solid #ccc; padding: 20px; border-radius: 4px; background: #fff; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .stat-number { font-size: 24px; font-weight: bold; color: #417690; display: block; }
-    .stat-title { color: #666; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
-    .my-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-    .my-table th { background: #79aec8; color: white; padding: 10px; text-align: left; }
-    .my-table td { border-bottom: 1px solid #eee; padding: 10px; }
-    .btn-django { background: #102820; color: white !important; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 13px; }
+    :root {
+        --primary: #0d47a1;
+        --primary-light: #1565c0;
+        --bg-body: #f0f4f7;
+        --white: #ffffff;
+    }
+    body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg-body); margin: 0; padding: 25px; color: #333; }
+    .container { max-width: 1400px; margin: auto; background: var(--white); padding: 25px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+
+    /* Header */
+    .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 20px; margin-bottom: 25px; }
+    .admin-header h2 { color: var(--primary); font-size: 1.8em; font-weight: 800; margin: 0; }
+
+    /* Statistiques */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; transition: 0.3s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2em; font-weight: 800; color: var(--primary); }
+    .stat-title { color: #777; font-size: 0.85em; text-transform: uppercase; margin-top: 5px; font-weight: 600; }
+
+    /* Layout avec sidebar */
+    .dashboard-layout { display: flex; gap: 20px; align-items: stretch; }
+    .sidebar { width: 240px; min-width: 240px; background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 20px; padding: 15px; box-shadow: 0 5px 15px rgba(13,71,161,0.1); border: 1px solid #90caf9; }
+    .sidebar-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 18px; margin-bottom: 8px; border: none; background: white; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s; color: #444; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+    .sidebar-btn:hover { background: var(--primary); color: white; transform: translateX(5px); }
+    .sidebar-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(13,71,161,0.3); }
+    .main-content { flex: 1; min-width: 0; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Tableaux */
+    .table-container { background: white; border-radius: 15px; border: 1px solid #f0f0f0; overflow: hidden; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #fafafa; color: #777; font-size: 11px; padding: 14px; text-align: left; text-transform: uppercase; font-weight: 700; }
+    td { padding: 14px; border-bottom: 1px solid #f6f6f6; font-size: 13px; }
+
+    /* Badges & boutons */
+    .badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; display: inline-block; }
+    .btn-admin { display: inline-block; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 12px; border: none; cursor: pointer; margin: 2px; }
+    .btn-success { background: #2e7d32; color: white; }
+    .btn-danger { background: #d32f2f; color: white; }
+    .btn-warning { background: #ff9800; color: white; }
+    .btn-success:hover { background: #1b5e20; }
+    .btn-danger:hover { background: #b71c1c; }
+    .btn-warning:hover { background: #e68900; }
+
+    .img-preview { max-height: 80px; border-radius: 8px; margin-right: 10px; }
+
+    /* Bandeau d'alerte */
+    .alert-summary {
+        background: #ffebee;
+        color: #b71c1c;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-left: 6px solid #d32f2f;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .alert-summary a { color: #b71c1c; font-weight: 700; text-decoration: underline; }
+    .close-btn { background: none; border: none; font-size: 1.3em; cursor: pointer; color: #b71c1c; }
 </style>
 
-<div class="container" style="padding: 20px;">
-    
-    <div class="django-header d-flex justify-content-between align-items-center">
-        <h2 style="margin:0;">Administration SANI-AGRO : Statistiques</h2>
+<div class="container">
+
+    <!-- EN-TÊTE -->
+    <div class="admin-header">
+        <h2>🔒 Administration SANI-AGRO</h2>
         <div>
-            <a href="/admin/gestion_agro/livraison/" class="btn-django">📦 Livraisons</a>
-            <a href="/admin/gestion_agro/reservation/" class="btn-django">📝 Réservations</a>
+            <a href="{% url 'dashboard_transactions_admin' %}" class="btn-admin btn-warning">💵 Voir toutes les transactions</a>
+            <a href="/admin/" class="btn-admin" style="background:#0d47a1; color:white;">⚙️ Admin Django</a>
         </div>
     </div>
 
-    <div class="row" style="display: flex; gap: 20px; margin-bottom: 30px;">
-        <div style="flex: 1;" class="stat-box">
-            <span class="stat-title">Litiges</span>
-            <span class="stat-number">{{ nb_litiges }}</span>
+    <!-- STATISTIQUES -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number">{{ nb_cautions }}</div><div class="stat-title">🔒 Cautions en attente</div></div>
+        <div class="stat-card"><div class="stat-number">{{ nb_identites }}</div><div class="stat-title">🛡️ Identités à vérifier</div></div>
+        <div class="stat-card"><div class="stat-number">{{ nb_litiges }}</div><div class="stat-title">⚠️ Litiges</div></div>
+        <div class="stat-card"><div class="stat-number">{{ flux_actif }}</div><div class="stat-title">🚛 Camions actifs</div></div>
+        <div class="stat-card"><div class="stat-number">{{ nb_transactions_attente }}</div><div class="stat-title">💵 Transactions en attente</div></div>
+    </div>
+
+    <!-- BANDEAU D'ALERTE SI TÂCHES EN ATTENTE -->
+    {% if nb_cautions > 0 or nb_litiges > 0 or nb_identites > 0 or nb_transactions_attente > 0 %}
+    <div class="alert-summary" id="alertSummary">
+        <div>
+            🚨 <strong>Actions requises :</strong>
+            {% if nb_cautions > 0 %}{{ nb_cautions }} caution(s), {% endif %}
+            {% if nb_identites > 0 %}{{ nb_identites }} identité(s), {% endif %}
+            {% if nb_litiges > 0 %}{{ nb_litiges }} litige(s), {% endif %}
+            {% if nb_transactions_attente > 0 %}{{ nb_transactions_attente }} transaction(s) financière(s).{% endif %}
+            <a href="#tabs">Traiter maintenant</a>
         </div>
-        <div style="flex: 1;" class="stat-box">
-            <span class="stat-title">Camions Actifs</span>
-            <span class="stat-number">{{ flux_actif }}</span>
+        <button class="close-btn" onclick="document.getElementById('alertSummary').style.display='none'">✕</button>
+    </div>
+    {% endif %}
+
+    <!-- LAYOUT AVEC SIDEBAR -->
+    <div class="dashboard-layout" id="tabs">
+        <!-- Barre latérale -->
+        <div class="sidebar">
+            <button class="sidebar-btn active" onclick="openTab(event, 'cautions')">🔒 Cautions</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'identites')">🛡️ Identités</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'utilisateurs')">👥 Utilisateurs</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'litiges')">⚠️ Litiges</button>
+            <button class="sidebar-btn" onclick="openTab(event, 'transactions')">💵 Transactions</button>
+            <!-- NOUVEAU BOUTON STATISTIQUES -->
+            <button class="sidebar-btn" onclick="openTab(event, 'statistiques')">📊 Statistiques</button>
         </div>
-        <div style="flex: 1;" class="stat-box">
-            <span class="stat-title">Cautions (FCFA)</span>
-            <span class="stat-number" style="color: #264b3d;">{{ argent_securise }}</span>
+
+        <!-- Contenu principal -->
+        <div class="main-content">
+
+            <!-- ONGLET CAUTIONS -->
+            <div id="cautions" class="tab-content active">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Commerçant</th><th>Produit</th><th>Montant</th><th>Date</th><th>Preuve</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for res in cautions_attente %}
+                            <tr>
+                                <td><strong>{{ res.commercant.user.username }}</strong></td>
+                                <td>{{ res.produit.nom }}</td>
+                                <td><strong>{{ res.caution_20 }} FCFA</strong></td>
+                                <td>{{ res.date_reservation|date:"d/m/Y H:i" }}</td>
+                                <td>{% if res.preuve_paiement %}<img src="{{ res.preuve_paiement.url }}" class="img-preview">{% else %}<span style="color:#999;">Aucune</span>{% endif %}</td>
+                                <td>
+                                    <form method="POST" action="{% url 'valider_caution_admin' %}" style="display:inline;">
+                                        {% csrf_token %}<input type="hidden" name="reservation_id" value="{{ res.id }}"><input type="hidden" name="action" value="valider"><button type="submit" class="btn-admin btn-success">✅ Valider</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'valider_caution_admin' %}" style="display:inline;">
+                                        {% csrf_token %}<input type="hidden" name="reservation_id" value="{{ res.id }}"><input type="hidden" name="action" value="rejeter"><button type="submit" class="btn-admin btn-danger">❌ Rejeter</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" style="text-align:center;padding:40px;color:#999;">✅ Aucune caution en attente.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ONGLET IDENTITÉS -->
+            <div id="identites" class="tab-content">
+                {% if producteurs_a_verifier or commercants_a_verifier or transporteurs_a_verifier %}
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Type</th><th>Nom</th><th>Pièce</th><th>Type de pièce</th><th>N° Pièce</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for p in producteurs_a_verifier %}
+                            <tr>
+                                <td><span class="badge" style="background:#2e7d32; color:white;">Producteur</span></td>
+                                <td><strong>{{ p.nom_complet }}</strong></td>
+                                <td>{% if p.piece_identite %}<img src="{{ p.piece_identite.url }}" class="img-preview">{% else %}<span style="color:#999;">Aucune</span>{% endif %}</td>
+                                <td>{{ p.get_type_piece_display }}</td>
+                                <td>{{ p.numero_piece|default:"—" }}</td>
+                                <td>
+                                    <a href="{% url 'verifier_identite_admin' 'producteur' p.id %}" class="btn-admin btn-success">✅ Vérifier</a>
+                                    <a href="{% url 'rejeter_identite_admin' 'producteur' p.id %}" class="btn-admin btn-danger">❌ Rejeter</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% for c in commercants_a_verifier %}
+                            <tr>
+                                <td><span class="badge" style="background:#1565c0; color:white;">Commerçant</span></td>
+                                <td><strong>{{ c.nom }} {{ c.prenom }}</strong></td>
+                                <td>{% if c.piece_identite %}<img src="{{ c.piece_identite.url }}" class="img-preview">{% else %}<span style="color:#999;">Aucune</span>{% endif %}</td>
+                                <td>{{ c.get_type_piece_display }}</td>
+                                <td>{{ c.numero_piece|default:"—" }}</td>
+                                <td>
+                                    <a href="{% url 'verifier_identite_admin' 'commercant' c.id %}" class="btn-admin btn-success">✅ Vérifier</a>
+                                    <a href="{% url 'rejeter_identite_admin' 'commercant' c.id %}" class="btn-admin btn-danger">❌ Rejeter</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% for t in transporteurs_a_verifier %}
+                            <tr>
+                                <td><span class="badge" style="background:#ff9800; color:white;">Transporteur</span></td>
+                                <td><strong>{{ t.nom }}</strong></td>
+                                <td>{% if t.piece_identite %}<img src="{{ t.piece_identite.url }}" class="img-preview">{% else %}<span style="color:#999;">Aucune</span>{% endif %}</td>
+                                <td>{{ t.get_type_piece_display }}</td>
+                                <td>{{ t.numero_piece|default:"—" }}</td>
+                                <td>
+                                    <a href="{% url 'verifier_identite_admin' 'transporteur' t.id %}" class="btn-admin btn-success">✅ Vérifier</a>
+                                    <a href="{% url 'rejeter_identite_admin' 'transporteur' t.id %}" class="btn-admin btn-danger">❌ Rejeter</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color:#999;text-align:center;padding:40px;">✅ Aucune identité en attente.</p>
+                {% endif %}
+            </div>
+
+            <!-- ONGLET UTILISATEURS -->
+            <div id="utilisateurs" class="tab-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Type</th><th>Nom</th><th>Téléphone</th><th>Statut</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for p in tous_producteurs %}
+                            <tr>
+                                <td><span class="badge" style="background:#2e7d32; color:white;">Producteur</span></td>
+                                <td><strong>{{ p.nom_complet }}</strong></td>
+                                <td>{{ p.telephone }}</td>
+                                <td>{% if p.est_actif %}<span class="badge" style="background:#e8f5e9; color:#2e7d32;">✅ Actif</span>{% else %}<span class="badge" style="background:#ffebee; color:#d32f2f;">⛔ Bloqué</span>{% endif %}</td>
+                                <td>{% if p.est_actif %}<a href="{% url 'bloquer_utilisateur' 'producteur' p.id %}" class="btn-admin btn-danger">⛔ Bloquer</a>{% else %}<a href="{% url 'debloquer_utilisateur' 'producteur' p.id %}" class="btn-admin btn-success">✅ Débloquer</a>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                            {% for c in tous_commercants %}
+                            <tr>
+                                <td><span class="badge" style="background:#1565c0; color:white;">Commerçant</span></td>
+                                <td><strong>{{ c.nom }} {{ c.prenom }}</strong></td>
+                                <td>{{ c.telephone }}</td>
+                                <td>{% if c.est_actif %}<span class="badge" style="background:#e8f5e9; color:#2e7d32;">✅ Actif</span>{% else %}<span class="badge" style="background:#ffebee; color:#d32f2f;">⛔ Bloqué</span>{% endif %}</td>
+                                <td>{% if c.est_actif %}<a href="{% url 'bloquer_utilisateur' 'commercant' c.id %}" class="btn-admin btn-danger">⛔ Bloquer</a>{% else %}<a href="{% url 'debloquer_utilisateur' 'commercant' c.id %}" class="btn-admin btn-success">✅ Débloquer</a>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                            {% for t in tous_transporteurs %}
+                            <tr>
+                                <td><span class="badge" style="background:#ff9800; color:white;">Transporteur</span></td>
+                                <td><strong>{{ t.nom }}</strong></td>
+                                <td>{{ t.telephone }}</td>
+                                <td>{% if t.est_actif %}<span class="badge" style="background:#e8f5e9; color:#2e7d32;">✅ Actif</span>{% else %}<span class="badge" style="background:#ffebee; color:#d32f2f;">⛔ Bloqué</span>{% endif %}</td>
+                                <td>{% if t.est_actif %}<a href="{% url 'bloquer_utilisateur' 'transporteur' t.id %}" class="btn-admin btn-danger">⛔ Bloquer</a>{% else %}<a href="{% url 'debloquer_utilisateur' 'transporteur' t.id %}" class="btn-admin btn-success">✅ Débloquer</a>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ONGLET LITIGES -->
+            <div id="litiges" class="tab-content">
+                {% if tous_litiges %}
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>N°</th><th>Déclarant</th><th>Livraison</th><th>Motif</th><th>Date</th><th>Statut</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for litige in tous_litiges %}
+                            <tr>
+                                <td><strong>#{{ litige.id }}</strong></td>
+                                <td>{{ litige.declarant.username }}</td>
+                                <td>Livraison #{{ litige.livraison.id }}</td>
+                                <td>{{ litige.motif|truncatewords:10 }}</td>
+                                <td>{{ litige.date_creation|date:"d/m/Y H:i" }}</td>
+                                <td>{% if litige.resolu %}<span class="badge" style="background:#e8f5e9;color:#2e7d32;">✅ Résolu</span>{% else %}<span class="badge" style="background:#ffebee;color:#d32f2f;">⚠️ En cours</span>{% endif %}</td>
+                                <td>{% if not litige.resolu %}<a href="{% url 'resoudre_litige' litige.id %}" class="btn-admin btn-success">✅ Résoudre</a>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color:#999;text-align:center;padding:40px;">✅ Aucun litige enregistré.</p>
+                {% endif %}
+            </div>
+
+            <!-- ONGLET TRANSACTIONS EN ATTENTE -->
+            <div id="transactions" class="tab-content">
+                {% if transactions_en_attente %}
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Date</th><th>Type</th><th>Réservation</th><th>Montant</th><th>Commentaire</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for tx in transactions_en_attente %}
+                            <tr>
+                                <td>{{ tx.date_creation|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if tx.type_transaction == 'CAUTION' %}<span class="badge" style="background:#ff9800;color:white;">Caution</span>
+                                    {% elif tx.type_transaction == 'REMBOURSEMENT' %}<span class="badge" style="background:#1565c0;color:white;">Remboursement</span>
+                                    {% elif tx.type_transaction == 'Paiement' %}<span class="badge" style="background:#2e7d32;color:white;">Paiement producteur</span>
+                                    {% elif tx.type_transaction == 'GAIN_TRANSPORT' %}<span class="badge" style="background:#0d47a1;color:white;">Gain transporteur</span>
+                                    {% else %}<span class="badge">{{ tx.type_transaction }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>#{{ tx.reservation.id }}</td>
+                                <td><strong>{{ tx.montant }} FCFA</strong></td>
+                                <td>{{ tx.commentaire|default:"—" }}</td>
+                                <td><a href="{% url 'marquer_transaction_effectue' tx.id %}" class="btn-admin btn-success">✅ Marquer effectué</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p style="color:#999;text-align:center;padding:40px;">✅ Aucune transaction en attente.</p>
+                {% endif %}
+            </div>
+
+            <!-- ========== NOUVEL ONGLET STATISTIQUES ========== -->
+            <div id="statistiques" class="tab-content">
+                <h3 style="color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-bottom: 20px;">📊 Indicateurs clés</h3>
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ livraisons_mois }}</div>
+                        <div class="stat-title">🚚 Livraisons ce mois</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ argent_securise|floatformat:0 }} FCFA</div>
+                        <div class="stat-title">🔐 Fonds sécurisés</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                    <!-- CA par produit (camembert) -->
+                    <div class="table-container">
+                        <h4 style="margin: 0; padding: 15px; background: #fafafa; border-bottom: 1px solid #eee;">💰 Chiffre d'affaires par produit</h4>
+                        <div style="width: 100%; max-width: 400px; margin: 20px auto;">
+                            <canvas id="caProduitChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- CA par marché -->
+                    <div class="table-container">
+                        <h4 style="margin: 0; padding: 15px; background: #fafafa; border-bottom: 1px solid #eee;">🏪 CA par marché</h4>
+                        <table>
+                            <thead><tr><th>Marché</th><th>Total (FCFA)</th></tr></thead>
+                            <tbody>
+                                {% for m in ca_par_marche %}
+                                <tr>
+                                    <td>{{ m.marche_destination }}</td>
+                                    <td><strong>{{ m.total|floatformat:0 }}</strong></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="2" style="color:#999; text-align:center;">Aucune vente</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top acteurs -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="table-container">
+                        <h4 style="margin: 0; padding: 15px; background: #fafafa;">⭐ Top 3 transporteurs fiables</h4>
+                        <table>
+                            <thead><tr><th>Transporteur</th><th>Score</th></tr></thead>
+                            <tbody>
+                                {% for t in top_transporteurs %}
+                                <tr>
+                                    <td>{{ t.nom }}</td>
+                                    <td><span class="badge" style="background:#e8f5e9;color:#2e7d32;">{{ t.score_fiabilite }}%</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="2" style="color:#999;">Aucun transporteur</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-container">
+                        <h4 style="margin: 0; padding: 15px; background: #fafafa;">🏆 Top 3 producteurs actifs</h4>
+                        <table>
+                            <thead><tr><th>Producteur</th><th>Ventes</th></tr></thead>
+                            <tbody>
+                                {% for p in top_producteurs %}
+                                <tr>
+                                    <td>{{ p.nom_complet }}</td>
+                                    <td><strong>{{ p.nb_ventes }}</strong></td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="2" style="color:#999;">Aucun producteur</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="row" style="display: flex; gap: 20px;">
-        <div style="flex: 2;">
-            <table class="my-table">
-                <thead>
-                    <tr>
-                        <th>PRODUIT</th>
-                        <th>QUANTITÉ ARRIVÉE (KG)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in stats_marche %}
-                    <tr>
-                        <td>{{ item.produit__nom }}</td>
-                        <td><strong>{{ item.total_tonnes }}</strong></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="2">Aucune donnée</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div style="flex: 1;">
-            <table class="my-table">
-                <thead>
-                    <tr><th>ORIGINE</th><th>TOTAL</th></tr>
-                </thead>
-                <tbody>
-                    {% for p in provenance %}
-                    <tr>
-                        <td>{{ p.produit__zone_origine }}</td>
-                        <td>{{ p.total }} KG</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
+
+<script>
+    function openTab(evt, tabName) {
+        var contents = document.getElementsByClassName("tab-content");
+        for (var i = 0; i < contents.length; i++) {
+            contents[i].classList.remove("active");
+        }
+        var buttons = document.getElementsByClassName("sidebar-btn");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove("active");
+        }
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var labels = [];
+    var data = [];
+    {% for p in ca_par_produit %}
+        labels.push("{{ p.produit__nom|escapejs }}");
+        data.push({{ p.total }});
+    {% endfor %}
+
+    if (labels.length > 0) {
+        // Palette de 30 couleurs distinctes
+        var colors = [
+            '#2e7d32', '#ff9800', '#0288d1', '#d32f2f', '#7b1fa2', '#fbc02d',
+            '#00897b', '#c62828', '#1565c0', '#6a1b9a', '#e65100', '#4527a0',
+            '#283593', '#bf360c', '#1b5e20', '#4a148c', '#f57f17', '#004d40',
+            '#b71c1c', '#0d47a1', '#ef6c00', '#1e88e5', '#8e24aa', '#f4511e',
+            '#00acc1', '#d81b60', '#5e35b1', '#3949ab', '#00838f', '#c0ca33'
+        ];
+
+        var bgColors = data.map(function(_, i) {
+            return colors[i % colors.length];
+        });
+
+        var ctx = document.getElementById('caProduitChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: bgColors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    } else {
+        document.getElementById('caProduitChart').style.display = 'none';
+    }
+});
+</script>
 {% endblock %}

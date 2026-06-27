@@ -1,0 +1,14 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<div style="max-width: 500px; margin: 50px auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+    <h2>Modifier la réservation #{{ reservation.id }}</h2>
+    <p>Produit : <strong>{{ reservation.produit.nom }}</strong></p>
+    <p>Quantité actuelle : <strong>{{ reservation.quantite_voulue }} kg</strong></p>
+    <form method="POST">
+        {% csrf_token %}
+        <label>Nouvelle quantité :</label>
+        <input type="number" name="quantite_voulue" value="{{ reservation.quantite_voulue }}" min="1" class="form-control" required>
+        <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+    </form>
+</div>
+{% endblock %}

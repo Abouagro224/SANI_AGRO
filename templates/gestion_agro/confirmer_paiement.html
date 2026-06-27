@@ -1,0 +1,25 @@
+{% extends 'gestion_agro/base.html' %}
+{% block content %}
+<div style="max-width: 500px; margin: 50px auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white;">
+    <h2 style="color: #2e7d32;">📋 Paiement de la caution</h2>
+    <p><strong>Produit :</strong> {{ res.produit.nom }}</p>
+    <p><strong>Quantité :</strong> {{ res.quantite_voulue }} kg</p>
+    <p><strong>Marché :</strong> {{ res.marche_destination }}</p>
+    <p><strong>Caution à payer (20%) :</strong> <span style="font-size: 1.5em; color: #e65100;">{{ res.caution_20 }} FCFA</span></p>
+    <hr>
+    <p>Veuillez déposer ce montant <strong>exact</strong> sur le compte Orange Money de <strong>SANI-AGRO</strong> :</p>
+    <p style="font-size: 1.3em; font-weight: bold; background: #f5f5f5; padding: 10px; border-radius: 8px; text-align: center;">+223 76 45 59 92</p>
+    <p style="font-size: 0.9em; color: #666;">("76 45 59 92 orange ou moov 68 23 22 74" )</p>
+    <hr>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p><strong>Preuve de paiement :</strong> prenez une photo du SMS de confirmation ou du ticket, et uploadez-la ici.</p>
+        <input type="file" name="preuve_paiement" accept="image/*" required style="margin-bottom: 15px;">
+        <button type="submit" style="background: #2e7d32; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%;">
+            📤 Envoyer la preuve de paiement
+        </button>
+    </form>
+    <br>
+    <a href="{% url 'dashboard_commercant' %}" style="text-align: center; display: block; color: #888;">Annuler et retourner au dashboard</a>
+</div>
+{% endblock %}

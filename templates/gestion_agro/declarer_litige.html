@@ -1,0 +1,28 @@
+{% extends 'gestion_agro/base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 30px;">
+    <h2 style="color: #b71c1c;">⚠️ Déclarer un litige</h2>
+
+    <div style="background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
+        <p><strong>Livraison concernée :</strong> #{{ livraison.id }}</p>
+        <p><strong>Produit :</strong> {{ livraison.reservation.produit.nom }}</p>
+        <p><strong>Transporteur :</strong> {{ livraison.transporteur.nom }}</p>
+        <p><strong>Client :</strong> {{ livraison.reservation.commercant.nom }} {{ livraison.reservation.commercant.prenom }}</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div style="margin-top: 20px;">
+                <label for="motif" style="font-weight: bold;">Description du problème :</label>
+                <textarea name="motif" id="motif" rows="5" required 
+                          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;"
+                          placeholder="Veuillez décrire le problème rencontré..."></textarea>
+            </div>
+            <button type="submit" 
+                    style="background: #b71c1c; color: white; padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; margin-top: 20px; cursor: pointer;">
+                Envoyer le litige
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
